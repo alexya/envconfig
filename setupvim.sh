@@ -40,6 +40,6 @@ git clone https://github.com/tpope/vim-repeat.git
 # http://vimawesome.com/plugin/surround-vim
 git clone https://github.com/tpope/vim-surround.git
 
-# cp ./config.vimrc $HOME/.vimrc
+cp ./config.vimrc $HOME/.vimrc
 
 exit 0
