@@ -4,7 +4,7 @@ set modelines=0		" CVE-2007-2438
 " using pathogen plugin to manage plug-ins
 execute pathogen#infect()
 
-" This config is learned from mingcheng
+" This config is for alexya
 if exists("alexya") 
     finish
 endif
@@ -126,23 +126,24 @@ set incsearch
 set ignorecase  " ignore lower and uppercase when searching
 
 " 制表符
-set tabstop=4
-set expandtab
+set tabstop=4   " tab 键的宽度
+set expandtab   " 用空格代替制表符
 set smarttab
-set shiftwidth=4
-set softtabstop=4
+set shiftwidth=4    " 统一缩进为4
+set softtabstop=4   " 统一缩进为4
 
 " 状态栏显示目前所执行的指令
 set showcmd 
 
 " 缩进
-set autoindent
-set smartindent
+set autoindent  " 自动对齐
+set smartindent " 智能对齐
 
 " 自动重新读入
 set autoread
 
 " 插入模式下使用 <BS>、<Del> <C-W> <C-U>
+" set backspace=2 " more powerful backspacing
 set backspace=indent,eol,start
 
 " 设定在任何模式下鼠标都可用
@@ -295,6 +296,11 @@ if has("autocmd")
     " 保存编辑状态
     au BufWinLeave * if expand('%') != '' && &buftype == '' | mkview | endif
     au BufRead     * if expand('%') != '' && &buftype == '' | silent loadview | syntax on | endif
+
+    " 高亮当前行
+    au InsertLeave * se nocul
+    au InsertEnter * se cul
+
 endif
 
 
@@ -459,6 +465,16 @@ endif
 
 " don't let NERD* plugin add to the menu
 let g:NERDMenuMode = 0
+
+" syntastic settings
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
 
 
 " =============
