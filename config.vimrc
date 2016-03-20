@@ -5,10 +5,10 @@ set modelines=0		" CVE-2007-2438
 execute pathogen#infect()
 
 " This config is for alexya
-if exists("alexya") 
-    finish
-endif
-let g:alexya = 1
+" if exists("alexya") 
+"     finish
+" endif
+" let g:alexya = 1
 
 if v:version < 700
     echoerr 'This _vimrc requires Vim 7 or later.'
