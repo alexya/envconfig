@@ -2,8 +2,8 @@
 
 git --version
 echo current user home is: $HOME
-echo current directory
-pwd
+CurPath=$(pwd)
+echo "current directory is: $CurPath"
 
 mkdir -p $HOME/.vim/bundle
 mkdir -p $HOME/.vim/autoload
@@ -40,6 +40,11 @@ git clone https://github.com/tpope/vim-repeat.git
 # http://vimawesome.com/plugin/surround-vim
 git clone https://github.com/tpope/vim-surround.git
 
-cp ./config.vimrc $HOME/.vimrc
+# vim-colors-solarized
+# https://github.com/altercation/vim-colors-solarized
+git clone git://github.com/altercation/vim-colors-solarized.git
+
+echo "copy file $CurPath/config.vimrc to $HOME/.vimrc"
+cp $CurPath/config.vimrc $HOME/.vimrc
 
 exit 0
