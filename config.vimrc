@@ -209,7 +209,9 @@ endif
 " AutoCmd
 " =========
 if has("autocmd")
-    filetype plugin indent on
+    filetype on           " Enable filetype detection
+    filetype indent on    " Enable filetype-specific indenting
+    filetype plugin on    " Enable filetype-specific plugins
 
     " 括号自动补全
     func! AutoClose()
@@ -240,9 +242,12 @@ if has("autocmd")
                     \ endif
     augroup END
 
+    " autocmd for different file type
     " Auto close quotation marks for PHP, Javascript, etc, file
     au FileType php,javascript exe AutoClose()
     au FileType php,javascript exe MatchingQuotes()
+    au FileType ruby set et sw=2 ts=2 sts=2
+    au FileType ruby compiler ruby
 
     " Don't write backup file if vim is being called by "crontab -e"
     au BufWrite /private/tmp/crontab.* set nowritebackup nobackup
@@ -419,11 +424,11 @@ nmap <f2>  :BufExplorer<cr>
 imap <f4> <C-r>=GetDateStamp()<cr>
 
 " 新建 XHTML 、PHP、Javascript 文件的快捷键
-nmap <C-c><C-h> :NewQuickTemplateTab xhtml<cr>
-nmap <C-c><C-p> :NewQuickTemplateTab php<cr>
-nmap <C-c><C-j> :NewQuickTemplateTab javascript<cr>
-nmap <C-c><C-c> :NewQuickTemplateTab css<cr>
-nmap <C-c><C-r> :NewQuickTemplateTab ruhoh<cr>
+" nmap <C-c><C-h> :NewQuickTemplateTab xhtml<cr>
+" nmap <C-c><C-p> :NewQuickTemplateTab php<cr>
+" nmap <C-c><C-j> :NewQuickTemplateTab javascript<cr>
+" nmap <C-c><C-c> :NewQuickTemplateTab css<cr>
+" nmap <C-c><C-r> :NewQuickTemplateTab ruhoh<cr>
 
 " shortcut to show plug-ins window
 nmap <Leader>ca :Calendar<cr>

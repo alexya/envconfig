@@ -16,7 +16,7 @@ cd $HOME/.vim/bundle
 
 # All the following plug-ins are introduced on http://vimawesome.com/
 
-# The NERD Tree (directory and file list)
+# The NERD Tree (navigate directory and file list)
 # http://vimawesome.com/plugin/nerdtree-red
 git clone https://github.com/scrooloose/nerdtree
 
@@ -43,6 +43,14 @@ git clone https://github.com/tpope/vim-surround.git
 # vim-colors-solarized
 # https://github.com/altercation/vim-colors-solarized
 git clone git://github.com/altercation/vim-colors-solarized.git
+
+# vim-ruby
+# https://github.com/vim-ruby/vim-ruby
+git clone git://github.com/vim-ruby/vim-ruby.git
+
+# BufExplorer
+# https://github.com/vim-scripts/bufexplorer.zip
+git clone https://github.com/vim-scripts/bufexplorer.zip
 
 echo "copy file $CurPath/config.vimrc to $HOME/.vimrc"
 cp $CurPath/config.vimrc $HOME/.vimrc
