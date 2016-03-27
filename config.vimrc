@@ -1,30 +1,66 @@
 " Configuration file for vim
+
 set modelines=0		" CVE-2007-2438
-
-" using pathogen plugin to manage plug-ins
-execute pathogen#infect()
-
-" This config is for alexya
-" if exists("alexya") 
-"     finish
-" endif
-" let g:alexya = 1
 
 if v:version < 700
     echoerr 'This _vimrc requires Vim 7 or later.'
     quit
 endif
 
-" 定义 <Leader> 为逗号
+
+" don't check file type first before plug-in setup
+filetype off
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+" alternatively, pass a path where Vundle should install plugins
+"call vundle#begin('~/some/path/here')
+
+" let Vundle manage Vundle, required
+Plugin 'gmarik/Vundle.vim'
+
+" The following are examples of different formats supported.
+" Keep Plugin commands between vundle#begin/end.
+" plugin on GitHub repo
+
+Plugin 'bufexplorer.zip'
+Plugin 'scrooloose/nerdtree'
+Plugin 'scrooloose/syntastic'
+Plugin 'majutsushi/tagbar'
+Plugin 'altercation/vim-colors-solarized'
+Plugin 'airblade/vim-gitgutter'
+Plugin 'anyakichi/vim-surround'
+Plugin 'vim-ruby/vim-ruby'
+
+call vundle#end()
+
+" Use different indent setting for different file type
+filetype plugin indent on
+
+" Brief help
+" :PluginList       - lists configured plugins
+" :PluginInstall    - installs plugins; append `!` to update or just
+" :PluginUpdate
+" :PluginSearch foo - searches for foo; append `!` to refresh local cache
+" :PluginClean      - confirms removal of unused plugins; append `!` to
+" auto-approve removal
+"
+" see :h vundle for more details or wiki for FAQ
+" or access for more details https://github.com/VundleVim/Vundle.vim
+" Put your non-Plugin stuff after this line
+
+
+" Define map <Leader>
 let mapleader = ","
 let maplocalleader = ","
 
-" 获取当前目录
+" Get current directory
 func! GetPWD()
     return substitute(getcwd(), "", "", "g")
 endf
 
-" 跳过页头注释，到首行实际代码
+" Pass the header comment, and jump to the first effective line
 func! GotoFirstEffectiveLine()
     let l:c = 0
     while l:c<line("$") && (
@@ -37,7 +73,7 @@ func! GotoFirstEffectiveLine()
     exe "normal ".l:c."Gz\<CR>"
 endf
 
-" 匹配配对的字符
+" Find matched quote and highlight
 func! MatchingQuotes()
     inoremap ( ()<left>
     inoremap [ []<left>
@@ -46,133 +82,107 @@ func! MatchingQuotes()
     inoremap ' ''<left>
 endf
 
-" 返回当前时期
+" Get current date 
 func! GetDateStamp()
     return strftime('%Y-%m-%d')
 endf
 
-" 全选
-func! SelectAll()
-    let s:current = line('.')
-    exe "norm gg" . (&slm == "" ? "VG" : "gH\<C-O>G")
-endf
-
-" From an idea by Michael Naumann
-func! VisualSearch(direction) range
-    let l:saved_reg = @"
-    execute "normal! vgvy"
-
-    let l:pattern = escape(@", '\\/.*$^~[]')
-    let l:pattern = substitute(l:pattern, "\n$", "", "")
-
-    if a:direction == 'b'
-        execute "normal ?" . l:pattern . "^M"
-    elseif a:direction == 'gv'
-        call CmdLine("vimgrep " . '/'. l:pattern . '/' . ' **/*.')
-    elseif a:direction == 'f'
-        execute "normal /" . l:pattern . "^M"
-    endif
-
-    let @/ = l:pattern
-    let @" = l:saved_reg
-endfunc
-
-"Fast reloading of the .vimrc (the following fails to work as 's' will enter
-"into INSERT mode)
-"map <silent> <leader>ss :source ~/.vimrc<cr>
 "Fast editing of .vimrc
 map <silent> <leader>ee :e ~/.vimrc<cr>
-
 
 " ============
 " Environment
 " ============
-" 保留历史记录
-set history=500
+
+set history=500                "keep 500 lines of command line history 
 set clipboard=unnamed
 
-" 行控制
+" line settings
 set linebreak
 set nocompatible
 set textwidth=80
 set wrap
 
-" 标签页
+" TAB settings
 set tabpagemax=9
 set showtabline=2
 
-" 控制台响铃
+" Console bell
 set noerrorbells
 set novisualbell
 set t_vb= "close visual bell
 
-" 行号和标尺
-set number
-set ruler
+set number  " show line numbers
+set ruler   " show the cursor's position
 set rulerformat=%15(%c%V\ %p%%%)
 
-" 命令行于状态行
+" Show command in status bar
 set ch=1
 set stl=\ [File]\ %F%m%r%h%y[%{&fileformat},%{&fileencoding}]\ %w\ \ [PWD]\ %r%{GetPWD()}%h\ %=\ [Line]%l/%L\ %=\[%P]
-set ls=2 " 始终显示状态行
-set wildmenu "命令行补全以增强模式运行
+set ls=2        " always show status bar
+set wildmenu    " command line completion
 
 " Search Option
-set hlsearch    " Highlight search things
-set magic       " Set magic on, for regular expressions
-set showmatch   " Show matching bracets when text indicator is over them
-set mat=2       " How many tenths of a second to blink
-set incsearch
-set ignorecase  " ignore lower and uppercase when searching
+set hlsearch    " highlight search terms
+set magic       " set magic on, for regular expressions
+set showmatch   " show matching bracets when text indicator is over them
+set mat=2       " how many tenths of a second to blink
+set incsearch   " do incremental searching
+set ignorecase  " ignore case during searches
+set smartcase   " if using UPPER case in SEARCH mode, ignore setting 'ignorecase'
 
-" 制表符
-set tabstop=4   " tab 键的宽度
-set expandtab   " 用空格代替制表符
+" TAB and indent settings
+set tabstop=4   " insert 4 spaces whenever the tab key is pressed
+set expandtab   " use spaces instead of tabs
 set smarttab
-set shiftwidth=4    " 统一缩进为4
-set softtabstop=4   " 统一缩进为4
+set shiftwidth=4    " set indentation to 4 spaces
+set softtabstop=4   
 
-" 状态栏显示目前所执行的指令
+" Show invisible chars
+set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
+set nolist          " set invlist/list/nolist
+
+" Display incomplete commands
 set showcmd 
+set showmode
 
-" 缩进
-set autoindent  " 自动对齐
-set smartindent " 智能对齐
+" Root permission on a file inside VIM
+cmap w!! w !sudo tee >/dev/null %
 
-" 自动重新读入
-set autoread
+set autoindent  " start new line at the same indentation level
+set smartindent 
 
-" 插入模式下使用 <BS>、<Del> <C-W> <C-U>
-" set backspace=2 " more powerful backspacing
+set autoread    " auto re-load file when it is changed outside VIM
+
+" In INSERT mode, use <BS>、<Del> <C-W> <C-U>
+" Set backspace=2 " more powerful backspacing
 set backspace=indent,eol,start
 
-" 设定在任何模式下鼠标都可用
+" Mouse can be used in all modes
 set mouse=a
 
-" 自动改变当前目录
-if has('netbeans_intg')
-    set autochdir
-endif
-
-" 备份和缓存
+" Backup and swap settings
 "set nobackup
 "set noswapfile
 
-" 自动完成
+" Auto complete
 set complete=.,w,b,k,t,i
 set completeopt=longest,menu
 
-" 代码折叠
-set foldmethod=marker
+" Code fold by (markder/syntax,etc.)
+" set foldmethod=marker " !!! this setting will hit performance issue
+
+" Set the command bar height
+set cmdheight=1         
 
 " =====================
-" 多语言环境
-"    默认为 UTF-8 编码
+" Multi language environment 
+"   default is UTF-8 
 " =====================
 if has("multi_byte")
     set encoding=utf-8
     " English messages only
-    "language messages zh_CN.utf-8
+    " Language messages zh_CN.utf-8
 
     if has('win32')
         language english
@@ -181,7 +191,7 @@ if has("multi_byte")
 
     set fencs=utf-8,gbk,chinese,latin1
     set formatoptions+=mM
-    set nobomb " 不使用 Unicode 签名
+    set nobomb " do not use Unicode signature
 
     if v:lang =~? '^\(zh\)\|\(ja\)\|\(ko\)'
         set ambiwidth=double
@@ -190,11 +200,11 @@ else
     echoerr "Sorry, this version of (g)vim was not compiled with +multi_byte"
 endif
 
-" 永久撤销，Vim7.3 新特性
+" Persistent undo, Vim7.3 new feature
 if has('persistent_undo')
     set undofile
 
-    " 设置撤销文件的存放的目录
+    " set the directory of saving the undo files
     if has("unix")
         set undodir=/tmp/,~/tmp,~/Temp
     else
@@ -209,11 +219,8 @@ endif
 " AutoCmd
 " =========
 if has("autocmd")
-    filetype on           " Enable filetype detection
-    filetype indent on    " Enable filetype-specific indenting
-    filetype plugin on    " Enable filetype-specific plugins
-
-    " 括号自动补全
+    
+    " fill the bracket automatically
     func! AutoClose()
         :inoremap ( ()<ESC>i
         :inoremap " ""<ESC>i
@@ -242,7 +249,7 @@ if has("autocmd")
                     \ endif
     augroup END
 
-    " autocmd for different file type
+    " Autocmd for different file type
     " Auto close quotation marks for PHP, Javascript, etc, file
     au FileType php,javascript exe AutoClose()
     au FileType php,javascript exe MatchingQuotes()
@@ -257,14 +264,14 @@ if has("autocmd")
     " Auto Check Syntax
     au BufWritePost,FileWritePost *.js,*.php call CheckSyntax(1)
 
-    "When .vimrc is edited, reload it
+    " When .vimrc is edited, reload it
     au BufWritePost .vimrc source ~/.vimrc 
 
-    " JavaScript 语法高亮
+    " JavaScript 
     au FileType html,javascript let g:javascript_enable_domhtmlcss = 1
     au BufRead,BufNewFile *.js setf jquery
 
-    " 给各语言文件添加 Dict
+    " Add Dict for different languages
     if has('win32')
         let s:dict_dir = $VIM.'\vimfiles\dict\'
     else
@@ -276,33 +283,33 @@ if has("autocmd")
     au FileType css exec s:dict_dir."css.dict"
     au FileType javascript exec s:dict_dir."javascript.dict"
 
-    " 格式化 JavaScript 文件
+    " Format JavaScript file
     au FileType javascript map <f12> :call g:Jsbeautify()<cr>
     au FileType javascript set omnifunc=javascriptcomplete#CompleteJS
 
-    " 增加 ActionScript 语法支持
+    " Support ActionScript file format
     au BufNewFile,BufRead,BufEnter,WinEnter,FileType *.as setf actionscript 
 
-    " CSS3 语法支持
+    " Support CSS3 file format
     au BufRead,BufNewFile *.css set ft=css syntax=css3
 
-    " 增加 Objective-C 语法支持
+    " Support Object-C file format
     au BufNewFile,BufRead,BufEnter,WinEnter,FileType *.m,*.h setf objc
 
-    " smali syntax supports
+    " Smali syntax supports
     au BufNewFile,BufRead,BufEnter,WinEnter,FileType *.smali set filetype=smali
 
     " Ardunio Support
     au BufNewFile,BufRead,BufEnter,WinEnter,FileType *.pde,*.ino set filetype=arduino
 
-    " 将指定文件的换行符转换成 UNIX 格式
+    " Transfer <enter> to UNIX format for specified file format
     au FileType php,javascript,html,css,python,vim,vimwiki set ff=unix
 
-    " 保存编辑状态
+    " Save editing state
     au BufWinLeave * if expand('%') != '' && &buftype == '' | mkview | endif
     au BufRead     * if expand('%') != '' && &buftype == '' | silent loadview | syntax on | endif
 
-    " 高亮当前行
+    " Highlight current line
     au InsertLeave * se nocul
     au InsertEnter * se cul
 
@@ -313,27 +320,27 @@ endif
 " GUI
 " =========
 if has('gui_running')
-    " 只显示菜单
+    " Only show menu
     set guioptions=mcr
 
-    " 高亮光标所在的行
+    " Highlight current line
     set cursorline
 
     if has("win32")
-        " Windows 兼容配置
+        " Windows compatible settings
         source $VIMRUNTIME/mswin.vim
 
-        " f11 最大化
+        " F11 maximize
         nmap <f11> :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
         nmap <Leader>ff :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
 
-        " 自动最大化窗口
+        " Maximize window automatically
         au GUIEnter * simalt ~x
 
-        " 给 Win32 下的 gVim 窗口设置透明度
+        " Set transparency for windows 
         au GUIEnter * call libcallnr("vimtweak.dll", "SetAlpha", 250)
 
-        " 字体配置
+        " Font setting
         exec 'set guifont='.iconv('Courier_New', &enc, 'gbk').':h10:cANSI'
         if has("multi_byte")
             exec 'set guifontwide='.iconv('Microsoft\ YaHei', &enc, 'gbk').':h10'
@@ -344,15 +351,14 @@ if has('gui_running')
     if has("gui_macvim")
         set anti
 
-        " MacVim 下的字体配置
         set guifont=Monaco:h14
         set guifontwide=Lantinghei\ SC\ Extralight:h14
 
-        " 半透明和窗口大小
+        " Set transparency and size of window
         set transparency=5
         set lines=40 columns=120
 
-        " 使用 MacVim 原生的全屏幕功能
+        " Using full screen of MacVim
         let s:lines=&lines
         let s:columns=&columns
 
@@ -376,7 +382,7 @@ if has('gui_running')
         endf
 
         set guioptions+=e
-        " Mac 下，按 <Leader>ff 切换全屏
+        " Shortcut to switch full screen
         nmap <f11> :call FullScreenToggle()<cr>
         nmap <Leader>ff  :call FullScreenToggle()<cr>
 
@@ -389,7 +395,7 @@ if has('gui_running')
         " Set QuickTemplatePath
         let g:QuickTemplatePath = $HOME.'/.vim/templates/'
 
-        " 如果为空文件，则自动设置当前目录为桌面
+        " If it is an empty file, set working directory to ~/Desktop/
         lcd ~/Desktop/
     endif
 
@@ -408,39 +414,32 @@ nmap <C-n>   :tabnext<cr>
 nmap <C-k>   :tabclose<cr>
 nmap <C-Tab> :tabnext<cr> 
 
-" insert mode shortcut
+" Insert mode shortcut
 inoremap <C-h> <Left>
 inoremap <C-j> <Down>
 inoremap <C-k> <Up>
 inoremap <C-l> <Right>
 inoremap <C-d> <Delete>
 
-" 插件快捷键
+" Shortcut keys for plug-ins
 nmap <C-d> :NERDTree<cr>
 nmap <C-e> :BufExplorer<cr>
 nmap <f2>  :BufExplorer<cr>
 
-" 插入模式按 F4 插入当前时间
+" Insert current date when press F4 under INSERT mode
 imap <f4> <C-r>=GetDateStamp()<cr>
 
-" 新建 XHTML 、PHP、Javascript 文件的快捷键
-" nmap <C-c><C-h> :NewQuickTemplateTab xhtml<cr>
-" nmap <C-c><C-p> :NewQuickTemplateTab php<cr>
-" nmap <C-c><C-j> :NewQuickTemplateTab javascript<cr>
-" nmap <C-c><C-c> :NewQuickTemplateTab css<cr>
-" nmap <C-c><C-r> :NewQuickTemplateTab ruhoh<cr>
-
-" shortcut to show plug-ins window
+" Shortcut to show plug-ins window
 nmap <Leader>ca :Calendar<cr>
 nmap <Leader>mr :MRU<cr>
 nmap <Leader>nt :NERDTree<cr>
 nmap <Leader>be :BufExplorer<cr>
 nmap <Leader>tt :TagbarToggle<cr>
 
-" 直接查看第一行生效的代码
+" Shortcut to goto the first efficitve line
 nmap <Leader>gff :call GotoFirstEffectiveLine()<cr>
 
-" 按下 Q 不进入 Ex 模式，而是退出
+" Press Q, directly exit
 nmap Q :x<cr>
 
 
@@ -455,23 +454,23 @@ else
 endif
 let g:checksyntax_cmd_javascript .= ' -nofilelisting -nocontext -nosummary -nologo -process'
 
-" VIM HTML 插件
+" VIM HTML plug-in 
 let g:no_html_toolbar = 'yes'
 
-" 不要显示 VimWiki 菜单
+" Don't show VimWiki menu
 if has('gui_running')
     let g:vimwiki_menu = ""
 endif
 
-" on Windows, default charset is gbk
+" On Windows, default charset is gbk
 if has("win32")
     let g:fontsize#encoding = "cp936"
 endif
 
-" don't let NERD* plugin add to the menu
+" Don't let NERD* plugin add to the menu
 let g:NERDMenuMode = 0
 
-" syntastic settings
+" Syntastic settings
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
@@ -489,18 +488,18 @@ if has('syntax')
     if has('gui_running')
         colorscheme zenburn
 
-        " 默认编辑器配色
+        " Set default color
         au BufNewFile,BufRead,BufEnter,WinEnter * colo zenburn
 
-        " 各不同类型的文件配色不同
+        " Use different color setting when open different file type
         au BufNewFile,BufRead,BufEnter,WinEnter *.wiki colo lucius
     else 
         set background=dark
-        " solarized or desert
+        " Solarized or desert
         colorscheme desert
     endif
 
-    " 保证语法高亮
+    " Open syntax on/highlight
     syntax on
 endif
 
