@@ -32,6 +32,8 @@ Plugin 'altercation/vim-colors-solarized'
 Plugin 'airblade/vim-gitgutter'
 Plugin 'anyakichi/vim-surround'
 Plugin 'vim-ruby/vim-ruby'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
 
 call vundle#end()
 
@@ -479,6 +481,9 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+
+" Airline settings
+map <silent> <leader>al :AirlineToggle<cr>
 
 
 " =============
