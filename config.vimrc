@@ -2,13 +2,54 @@
 
 set modelines=0		" CVE-2007-2438
 
-" Using pathogen plugin to manage plug-ins
-execute pathogen#infect()
-
 if v:version < 700
     echoerr 'This _vimrc requires Vim 7 or later.'
     quit
 endif
+
+
+" don't check file type first before plug-in setup
+filetype off
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+" alternatively, pass a path where Vundle should install plugins
+"call vundle#begin('~/some/path/here')
+
+" let Vundle manage Vundle, required
+Plugin 'gmarik/Vundle.vim'
+
+" The following are examples of different formats supported.
+" Keep Plugin commands between vundle#begin/end.
+" plugin on GitHub repo
+
+Plugin 'bufexplorer.zip'
+Plugin 'scrooloose/nerdtree'
+Plugin 'scrooloose/syntastic'
+Plugin 'majutsushi/tagbar'
+Plugin 'altercation/vim-colors-solarized'
+Plugin 'airblade/vim-gitgutter'
+Plugin 'anyakichi/vim-surround'
+Plugin 'vim-ruby/vim-ruby'
+
+call vundle#end()
+
+" Use different indent setting for different file type
+filetype plugin indent on
+
+" Brief help
+" :PluginList       - lists configured plugins
+" :PluginInstall    - installs plugins; append `!` to update or just
+" :PluginUpdate
+" :PluginSearch foo - searches for foo; append `!` to refresh local cache
+" :PluginClean      - confirms removal of unused plugins; append `!` to
+" auto-approve removal
+"
+" see :h vundle for more details or wiki for FAQ
+" or access for more details https://github.com/VundleVim/Vundle.vim
+" Put your non-Plugin stuff after this line
+
 
 " Define map <Leader>
 let mapleader = ","
@@ -178,10 +219,7 @@ endif
 " AutoCmd
 " =========
 if has("autocmd")
-    filetype on           " Enable filetype detection
-    filetype indent on    " Enable filetype-specific indenting
-    filetype plugin on    " Enable filetype-specific plugins
-
+    
     " fill the bracket automatically
     func! AutoClose()
         :inoremap ( ()<ESC>i
