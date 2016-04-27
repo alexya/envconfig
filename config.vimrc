@@ -438,6 +438,7 @@ nmap <Leader>mr :MRU<cr>
 nmap <Leader>nt :NERDTree<cr>
 nmap <Leader>be :BufExplorer<cr>
 nmap <Leader>tt :TagbarToggle<cr>
+nmap <Leader>ff :CtrlP<cr>
 
 " Shortcut to goto the first efficitve line
 nmap <Leader>gff :call GotoFirstEffectiveLine()<cr>
