@@ -34,6 +34,7 @@ Plugin 'anyakichi/vim-surround'
 Plugin 'vim-ruby/vim-ruby'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
+Plugin 'kien/ctrlp.vim'
 
 call vundle#end()
 
