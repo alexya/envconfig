@@ -35,6 +35,8 @@ Plugin 'vim-ruby/vim-ruby'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'kien/ctrlp.vim'
+Plugin 'nathanaelkane/vim-indent-guides'
+Plugin 'tpope/vim-commentary'
 
 call vundle#end()
 
@@ -177,6 +179,9 @@ set completeopt=longest,menu
 
 " Set the command bar height
 set cmdheight=1         
+
+" highlight current line
+set cursorline
 
 " =====================
 " Multi language environment 
@@ -359,7 +364,7 @@ if has('gui_running')
 
         " Set transparency and size of window
         set transparency=5
-        set lines=40 columns=120
+        set lines=80 columns=150
 
         " Using full screen of MacVim
         let s:lines=&lines
@@ -437,8 +442,9 @@ nmap <Leader>ca :Calendar<cr>
 nmap <Leader>mr :MRU<cr>
 nmap <Leader>nt :NERDTree<cr>
 nmap <Leader>be :BufExplorer<cr>
-nmap <Leader>tt :TagbarToggle<cr>
-nmap <Leader>ff :CtrlP<cr>
+
+nmap <Leader>find :CtrlP<cr>
+nmap <Leader>tag  :TagbarToggle<cr>
 
 " Shortcut to goto the first efficitve line
 nmap <Leader>gff :call GotoFirstEffectiveLine()<cr>
@@ -493,17 +499,19 @@ map <silent> <leader>al :AirlineToggle<cr>
 " =============
 if has('syntax')
     if has('gui_running')
-        colorscheme zenburn
+        " colorscheme zenburn
+        colorscheme Solarized
+        set background=dark
 
         " Set default color
-        au BufNewFile,BufRead,BufEnter,WinEnter * colo zenburn
+        au BufNewFile,BufRead,BufEnter,WinEnter * colo desert " zenburn
 
         " Use different color setting when open different file type
         au BufNewFile,BufRead,BufEnter,WinEnter *.wiki colo lucius
     else 
-        set background=dark
         " Solarized or desert
         colorscheme desert
+        set background=dark
     endif
 
     " Open syntax on/highlight
