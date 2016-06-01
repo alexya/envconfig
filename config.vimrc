@@ -338,6 +338,8 @@ if has('gui_running')
         " Windows compatible settings
         source $VIMRUNTIME/mswin.vim
 
+        set viewdir=~/.vim/view
+
         " F11 maximize (comment the following, as they need 3rd party Dlls)
         " nmap <f11> :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
         " nmap <Leader>ff :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
@@ -351,7 +353,7 @@ if has('gui_running')
         " Font setting
         exec 'set guifont='.iconv('Courier_New', &enc, 'gbk').':h12:cANSI'
         if has("multi_byte")
-            exec 'set guifontwide='.iconv('NSimSum', &enc, 'gbk').':h12'
+            exec 'set guifontwide='.iconv('NSimSun', &enc, 'gbk').':h12'
         endif
     endif
 
