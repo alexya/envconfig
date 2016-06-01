@@ -338,20 +338,20 @@ if has('gui_running')
         " Windows compatible settings
         source $VIMRUNTIME/mswin.vim
 
-        " F11 maximize
-        nmap <f11> :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
-        nmap <Leader>ff :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
+        " F11 maximize (comment the following, as they need 3rd party Dlls)
+        " nmap <f11> :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
+        " nmap <Leader>ff :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
 
         " Maximize window automatically
-        au GUIEnter * simalt ~x
+        " au GUIEnter * simalt ~x
 
         " Set transparency for windows 
-        au GUIEnter * call libcallnr("vimtweak.dll", "SetAlpha", 250)
+        " au GUIEnter * call libcallnr("vimtweak.dll", "SetAlpha", 250)
 
         " Font setting
-        exec 'set guifont='.iconv('Courier_New', &enc, 'gbk').':h10:cANSI'
+        exec 'set guifont='.iconv('Courier_New', &enc, 'gbk').':h12:cANSI'
         if has("multi_byte")
-            exec 'set guifontwide='.iconv('Microsoft\ YaHei', &enc, 'gbk').':h10'
+            exec 'set guifontwide='.iconv('NSimSum', &enc, 'gbk').':h12'
         endif
     endif
 
@@ -364,7 +364,7 @@ if has('gui_running')
 
         " Set transparency and size of window
         set transparency=5
-        set lines=80 columns=150
+        set lines=50 columns=150
 
         " Using full screen of MacVim
         let s:lines=&lines
@@ -472,11 +472,6 @@ if has('gui_running')
     let g:vimwiki_menu = ""
 endif
 
-" On Windows, default charset is gbk
-if has("win32")
-    let g:fontsize#encoding = "cp936"
-endif
-
 " Don't let NERD* plugin add to the menu
 let g:NERDMenuMode = 0
 
@@ -499,15 +494,15 @@ map <silent> <leader>al :AirlineToggle<cr>
 " =============
 if has('syntax')
     if has('gui_running')
-        " colorscheme zenburn
+        " colorscheme zenburn/Solarized/desert
         colorscheme Solarized
         set background=dark
 
         " Set default color
-        au BufNewFile,BufRead,BufEnter,WinEnter * colo desert " zenburn
+        au BufNewFile,BufRead,BufEnter,WinEnter * colo Solarized " zenburn
 
         " Use different color setting when open different file type
-        au BufNewFile,BufRead,BufEnter,WinEnter *.wiki colo lucius
+        au BufNewFile,BufRead,BufEnter,WinEnter *.wiki colo desert
     else 
         " Solarized or desert
         colorscheme desert
