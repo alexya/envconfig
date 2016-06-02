@@ -37,6 +37,7 @@ Plugin 'vim-airline/vim-airline-themes'
 Plugin 'kien/ctrlp.vim'
 Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'tpope/vim-commentary'
+Plugin 'twe4ked/vim-colorscheme-switcher'
 
 call vundle#end()
 
@@ -489,6 +490,11 @@ let g:syntastic_check_on_wq = 0
 " Airline settings
 map <silent> <leader>al :AirlineToggle<cr>
 
+" vim-colorscheme-switcher: switch colors as following
+autocmd VimEnter * :silent! SetColors solarized desert
+
+" vim-color-Solarized: switch background by a Function Key, e.g. F4
+call togglebg#map("<F4>")
 
 " =============
 " Color Scheme
@@ -509,6 +515,8 @@ if has('syntax')
         colorscheme desert
         set background=dark
     endif
+
+    setlocal synmaxcol=200
 
     " Open syntax on/highlight
     syntax on
