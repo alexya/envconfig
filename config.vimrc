@@ -516,7 +516,7 @@ if has('syntax')
         set background=dark
     endif
 
-    setlocal synmaxcol=200
+    setlocal synmaxcol=400
 
     " Open syntax on/highlight
     syntax on
