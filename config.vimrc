@@ -338,8 +338,6 @@ if has('gui_running')
         " Windows compatible settings
         source $VIMRUNTIME/mswin.vim
 
-        set viewdir=~/.vim/view
-
         " F11 maximize (comment the following, as they need 3rd party Dlls)
         " nmap <f11> :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
         " nmap <Leader>ff :call libcallnr('fullscreen.dll', 'ToggleFullScreen', 0)<cr>
@@ -349,6 +347,7 @@ if has('gui_running')
 
         " Set transparency for windows 
         " au GUIEnter * call libcallnr("vimtweak.dll", "SetAlpha", 250)
+        set lines=50 columns=120
 
         " Font setting
         exec 'set guifont='.iconv('Courier_New', &enc, 'gbk').':h12:cANSI'
