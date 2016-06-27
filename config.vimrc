@@ -39,6 +39,7 @@ Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'tpope/vim-commentary'
 Plugin 'twe4ked/vim-colorscheme-switcher'
 
+
 call vundle#end()
 
 " Use different indent setting for different file type
@@ -322,6 +323,9 @@ if has("autocmd")
     au InsertLeave * se nocul
     au InsertEnter * se cul
 
+    " set current directory as the working directory
+    autocmd BufEnter * lcd %:p:h
+
 endif
 
 
@@ -361,8 +365,8 @@ if has('gui_running')
     if has("gui_macvim")
         set anti
 
-        set guifont=Monaco:h14
-        set guifontwide=Lantinghei\ SC\ Extralight:h14
+        set guifont=Monaco:h16
+        set guifontwide=Lantinghei\ SC\ Extralight:h16
 
         " Set transparency and size of window
         set transparency=5
