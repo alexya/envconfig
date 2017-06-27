@@ -483,7 +483,7 @@ let g:NERDMenuMode = 0
 
 " Syntastic settings
 set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%#syntasticstatuslineflag#
 set statusline+=%*
 
 let g:syntastic_always_populate_loc_list = 1
@@ -498,7 +498,7 @@ map <silent> <leader>al :AirlineToggle<cr>
 autocmd VimEnter * :silent! SetColors solarized desert
 
 " vim-color-Solarized: switch background by a Function Key, e.g. F4
-call togglebg#map("<F4>")
+"#togglebackgroundmap#
 
 " =============
 " Color Scheme
