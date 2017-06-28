@@ -32,11 +32,20 @@ chown -R $current_user:$current_user $HOME/.vimrc
 
 echo "please install zsh separately and firstly."
 echo "installing oh-my-zsh."
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh)" -s --batch && echo "Install complete!"
+rm -rf $HOME/.oh-my-zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh)" -s --batch && echo "oh-my-zsh install complete!"
 
 echo "installing zsh plug-in posh-git-sh"
+rm -rf $HOME/.posh-git-sh
 git clone https://github.com/lyze/posh-git-sh.git $HOME/.posh-git-sh
-echo . ~/.posh-git-sh/git-prompt.sh >> $HOME/.zshrc
+
+echo "hook git-prompt to zsh"
+if ! grep -q git-prompt.sh "$HOME/.zshrc"; then
+  echo . ~/.posh-git-sh/git-prompt.sh >> $HOME/.zshrc
+fi
+
+echo "apply alexya's zsh theme"
+mkdir -p $HOME/.oh-my-zsh/themes
 cp -f $CurPath/alexya.zsh-theme $HOME/.oh-my-zsh/themes
 sed -i -e 's/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"alexya\"/g' $HOME/.zshrc
 
