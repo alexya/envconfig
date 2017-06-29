@@ -29,3 +29,8 @@
 ### References
 * More plug-ins could be found from here: http://vimawesome.com/
 * Oh-my-zsh https://github.com/robbyrussell/oh-my-zsh
+* posh-git-sh https://github.com/lyze/posh-git-sh
+
+### License
+
+This is distributed under the GNU GPL v2.0.
