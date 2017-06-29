@@ -23,6 +23,9 @@
 * Install some useful plug-ins for vim
 * Install oh-my-zsh and use my own configuration
 
+## Screenshot after installation
+![](images/alexya-zsh-01.png)
+
 ### References
 * More plug-ins could be found from here: http://vimawesome.com/
 * Oh-my-zsh https://github.com/robbyrussell/oh-my-zsh
