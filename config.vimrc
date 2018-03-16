@@ -38,7 +38,9 @@ Plugin 'kien/ctrlp.vim'
 Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'tpope/vim-commentary'
 Plugin 'twe4ked/vim-colorscheme-switcher'
-
+Plugin 'pangloss/vim-javascript'
+Plugin 'kchmck/vim-coffee-script'
+Plugin 'groovy.vim'
 
 call vundle#end()
 
@@ -47,8 +49,7 @@ filetype plugin indent on
 
 " Brief help
 " :PluginList       - lists configured plugins
-" :PluginInstall    - installs plugins; append `!` to update or just
-" :PluginUpdate
+" :PluginInstall    - installs plugins; append `!` to update or just " :PluginUpdate
 " :PluginSearch foo - searches for foo; append `!` to refresh local cache
 " :PluginClean      - confirms removal of unused plugins; append `!` to
 " auto-approve removal
@@ -109,6 +110,8 @@ set linebreak
 set nocompatible
 set textwidth=80
 set wrap
+set wrapmargin=0
+set formatoptions-=t
 
 " TAB settings
 set tabpagemax=9
@@ -150,14 +153,14 @@ set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
 set nolist          " set invlist/list/nolist
 
 " Display incomplete commands
-set showcmd 
+set showcmd
 set showmode
 
 " Root permission on a file inside VIM
 cmap w!! w !sudo tee >/dev/null %
 
 set autoindent  " start new line at the same indentation level
-set smartindent 
+set smartindent
 
 set autoread    " auto re-load file when it is changed outside VIM
 
@@ -171,6 +174,18 @@ set mouse=a
 " Backup and swap settings
 "set nobackup
 "set noswapfile
+let bakpath = $HOME.'/.vim/backupfiles'
+let swappath = $HOME.'/.vim/swapfiles'
+
+if !isdirectory(swappath)
+    call mkdir(swappath, "p")
+endif
+if !isdirectory(bakpath)
+    call mkdir(bakpath, "p")
+endif
+
+set backupdir=$HOME/.vim/backupfiles
+set directory=$HOME/.vim/swapfiles
 
 " Auto complete
 set complete=.,w,b,k,t,i
@@ -180,7 +195,7 @@ set completeopt=longest,menu
 " set foldmethod=marker " !!! this setting will hit performance issue
 
 " Set the command bar height
-set cmdheight=1         
+set cmdheight=1
 
 " highlight current line
 set cursorline
@@ -217,8 +232,8 @@ if has('persistent_undo')
     " set the directory of saving the undo files
     if has("unix")
         set undodir=/tmp/,~/tmp,~/Temp
-    else
-        set undodir=d:/temp/
+    elseif has ("win32")
+        set undodir=%temp%
     endif
     set undolevels=1000
     set undoreload=10000
@@ -428,6 +443,14 @@ nmap <C-n>   :tabnext<cr>
 nmap <C-k>   :tabclose<cr>
 nmap <C-Tab> :tabnext<cr> 
 
+" =============
+" copy and past controls
+" =============
+nmap<C-A> ggvG$
+vmap<C-C> "*y
+nmap <C-v> c<ESC>"+p
+imap <C-v> <ESC>"+pa
+
 " Insert mode shortcut
 inoremap <C-h> <Left>
 inoremap <C-j> <Down>
@@ -483,7 +506,7 @@ let g:NERDMenuMode = 0
 
 " Syntastic settings
 set statusline+=%#warningmsg#
-set statusline+=%#syntasticstatuslineflag#
+set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
 let g:syntastic_always_populate_loc_list = 1
@@ -498,7 +521,7 @@ map <silent> <leader>al :AirlineToggle<cr>
 autocmd VimEnter * :silent! SetColors solarized desert
 
 " vim-color-Solarized: switch background by a Function Key, e.g. F4
-"#togglebackgroundmap#
+call togglebg#map("<F4>")
 
 " =============
 " Color Scheme
