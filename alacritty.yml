@@ -1,0 +1,142 @@
+# Window
+window:
+  padding:
+    x: 10
+    y: 10
+  # Window decorations
+  #
+  # Values for `decorations`:
+  #     - full: Borders and title bar
+  #     - none: Neither borders nor title bar
+  #
+  # Values for `decorations` (macOS only):
+  #     - transparent: Title bar, transparent background and title bar buttons
+  #     - buttonless: Title bar, transparent background, but no title bar buttons
+  decorations: buttonless
+  # decorations: none
+  # Window class (Linux only):
+  class:
+    instance: Alacritty
+    general: Alacritty
+  dynamic_padding: false
+  dynamic_title: true
+  dimensions:
+      columns: 150
+      lines: 60
+
+scrolling:
+  history: 10000 
+
+background_opacity: 0.95
+
+live_config_reload: true
+
+selection:
+  save_to_clipboard: true
+
+font:
+  normal:
+    family: Source Code Pro
+    style: Regular
+  bold:
+    family: Source Code Pro
+    style: Medium
+  size: 16
+  use_thin_strokes: true
+  offset:
+    x: 0
+    y: 0
+  # glyph_offset的值需要是offset的1/2，才能使字体居中
+  # 修改glyph_offset需要重启
+  glyph_offset: 
+    x: 0
+    y: 0
+
+draw_bold_text_with_bright_colors-light: false
+
+debug:
+  log_level: Info
+
+bell:
+  animation: EaseOutExpo
+  duration: 0
+  color: '0xffffff'
+
+colors-light:
+  # Default colors
+  primary:
+    background: '0xf8f8f8'
+    foreground: '0x383838'
+
+  # Colors the cursor will use if `custom_cursor_colors` is true
+  cursor:
+    text: '0xf8f8f8'
+    cursor: '0x383838'
+
+  # Normal colors
+  normal:
+    black:   '0xf8f8f8'
+    red:     '0xab4642'
+    green:   '0x538947'
+    yellow:  '0xf79a0e'
+    blue:    '0x7cafc2'
+    magenta: '0x96609e'
+    cyan:    '0x4b8093'
+    white:   '0x383838'
+
+  # Bright colors
+  bright:
+    black:   '0xb8b8b8'
+    red:     '0xab4642'
+    green:   '0x538947'
+    yellow:  '0xf79a0e'
+    blue:    '0x7cafc2'
+    magenta: '0x96609e'
+    cyan:    '0x4b8093'
+    white:   '0x181818'
+
+  indexed_colors-light:
+    - { index: 16, color: '0xdc9656' }
+    - { index: 17, color: '0xa16946' }
+    - { index: 18, color: '0xe8e8e8' }
+    - { index: 19, color: '0xd8d8d8' }
+    - { index: 20, color: '0x585858' }
+    - { index: 21, color: '0x282828' }
+
+
+# Base16 Gruvbox dark, medium 256 - alacritty color config
+# Dawid Kurek (dawikur@gmail.com), morhetz (https://github.com/morhetz/gruvbox)
+colors:
+  # Default colors
+  primary:
+    background: '0x282828'
+    foreground: '0xd5c4a1'
+  cursor:
+    text: '0x282828'
+    cursor: '0xd5c4a1'
+  normal:
+    black:   '0x282828'
+    red:     '0xfb4934'
+    green:   '0xb8bb26'
+    yellow:  '0xfabd2f'
+    blue:    '0x83a598'
+    magenta: '0xd3869b'
+    cyan:    '0x8ec07c'
+    white:   '0xd5c4a1'
+  # Bright colors
+  bright:
+    black:   '0x665c54'
+    red:     '0xfb4934'
+    green:   '0xb8bb26'
+    yellow:  '0xfabd2f'
+    blue:    '0x83a598'
+    magenta: '0xd3869b'
+    cyan:    '0x8ec07c'
+    white:   '0xfbf1c7'
+  indexed_colors:
+    - { index: 16, color: '0xfe8019' }
+    - { index: 17, color: '0xd65d0e' }
+    - { index: 18, color: '0x3c3836' }
+    - { index: 19, color: '0x504945' }
+    - { index: 20, color: '0xbdae93' }
+    - { index: 21, color: '0xebdbb2' }
