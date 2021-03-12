@@ -75,7 +75,7 @@ call plug#end()
 func! GetPWD()
     return substitute(getcwd(), "", "", "g")
 endf
-:command Dir :echo expand('%:p')
+command! Dir :echo expand('%:p')
 
 " ============
 " Standard Environment
