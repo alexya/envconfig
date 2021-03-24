@@ -76,6 +76,13 @@ func! GetPWD()
     return substitute(getcwd(), "", "", "g")
 endf
 command! Dir :echo expand('%:p')
+command! Cp let @+ = expand('%:p')
+
+
+
+let g:python_host_prog  = '/usr/bin/python'
+let g:python3_host_prog = '/usr/local/bin/python3'
+let g:ruby_host_prog    = '/Users/yangzh/.rvm/rubies/ruby-2.4.1/bin/ruby'
 
 " ============
 " Standard Environment
@@ -279,7 +286,7 @@ func! GetDateStamp()
     return strftime('%Y-%m-%d')
 endf
 " Insert current date when press F4 under INSERT mode
-imap <f4>=GetDateStamp()<cr>
+"imap <f4>=GetDateStamp()<cr>
 
 " =============
 " Settings for plugins
@@ -346,7 +353,8 @@ let g:Lf_NormalMap = {
     \ "History":     [["<ESC>", ':exec g:Lf_py "historyExplManager.quit()"<CR>']],
     \ "Help":        [["<ESC>", ':exec g:Lf_py "helpExplManager.quit()"<CR>']],
     \ "Self":        [["<ESC>", ':exec g:Lf_py "selfExplManager.quit()"<CR>']],
-    \ "Colorscheme": [["<ESC>", ':exec g:Lf_py "colorschemeExplManager.quit()"<CR>']]
+    \ "Colorscheme": [["<ESC>", ':exec g:Lf_py "colorschemeExplManager.quit()"<CR>']],
+    \ "Rg":          [["<ESC>", ':exec g:Lf_py "rgExplManager.quit()"<CR>']]
     \}
 "}
 
@@ -517,7 +525,7 @@ function! s:show_documentation()
 endfunction
 
 " Show signature help while editing
-autocmd CursorHoldI * silent! call CocAction('showSignatureHelp')
+autocmd CursorHoldI * silent! call CocActionAsync('showSignatureHelp')
 " Highlight the symbol and its references when holding the cursor.
 autocmd CursorHold * silent call CocActionAsync('highlight')
 
