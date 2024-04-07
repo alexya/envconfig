@@ -38,6 +38,8 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/loket/oh-my-zsh/feature/ba
 echo "installing zsh plug-in posh-git-sh"
 rm -rf $HOME/.posh-git-sh
 git clone https://github.com/lyze/posh-git-sh.git $HOME/.posh-git-sh
+git clone https://github.com/zsh-users/zsh-autosuggestions.git $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions        
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 
 echo "hook git-prompt to zsh"
 if ! grep -q git-prompt.sh "$HOME/.zshrc"; then
@@ -48,6 +50,7 @@ echo "apply alexya's zsh theme"
 mkdir -p $HOME/.oh-my-zsh/themes
 cp -f $CurPath/alexya.zsh-theme $HOME/.oh-my-zsh/themes
 sed -i -e 's/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"alexya\"/g' $HOME/.zshrc
+sed -i -e 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/g' $HOME/.zshrc
 
 echo "DONE."
 exit 0
