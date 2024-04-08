@@ -123,6 +123,7 @@ set novisualbell
 set t_vb= "close visual bell
 
 set number  " show line numbers
+set relativenumber "show the relative number"
 set ruler   " show the cursor's position
 set rulerformat=%15(%c%V\ %p%%%)
 
