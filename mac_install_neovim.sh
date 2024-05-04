@@ -1,82 +1,100 @@
 #!/bin/bash
-
+#
 # Separator
 sep="\n************************************\n"
 
-# Install Command Line Tools
-echo -e "${sep}Installing Command Line Tools..."
-xcode-select --install
-
-# The newer verson of macOS has installed the 'zsh'
-# Assume that the 'curl' has been installed
+# Check if Xcode Command Line Tools are installed, install if we don't have them
+if ! xcode-select --version &>/dev/null; then
+    echo -e "${sep}Installing Xcode Command Line Tools..."
+    xcode-select --install
+else
+    echo "Xcode Command Line Tools are already installed"
+fi
 
 # Check if Homebrew is installed, install if we don't have it
-if test ! $(which brew); then
+if ! command -v brew &>/dev/null; then
     echo -e "${sep}Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# Install wget
-echo -e "${sep}Installing wget..."
-brew install wget
-
-# Install iTerm2
-echo -e "${sep}Installing iTerm2..."
-brew install --cask iterm2
+# in the current running environment, disable the brew auto update
+export HOMEBREW_NO_AUTO_UPDATE=1
 
 # Tap into homebrew/cask-fonts
-echo -e "${sep}Tapping into homebrew/cask-fonts..."
-brew tap homebrew/cask-fonts
+if ! brew tap | grep -q 'homebrew/cask-fonts'; then
+    echo -e "${sep}Tapping into homebrew/cask-fonts..."
+    brew tap homebrew/cask-fonts
+else
+    echo "homebrew/cask-fonts is already tapped"
+fi
 
-# Install font-meslo-lg-nerd-font
-echo -e "${sep}Installing font-meslo-lg-nerd-font..."
-brew install --cask font-meslo-lg-nerd-font
+# Install tools with 'brew install'
+tools=("wget" "ripgrep" "python" "fzf" "neovim")
+for tool in "${tools[@]}"; do
+  if ! brew list $tool &>/dev/null; then
+    echo -e "${sep}Installing $tool..."
+    brew install $tool
+  else
+    echo "$tool is already installed"
+  fi
+done
 
-# Install ripgrep
-echo -e "${sep}Installing ripgrep..."
-brew install ripgrep
+# Install tools with 'brew install --cask'
+cask_tools=("iterm2" "font-meslo-lg-nerd-font")
+for tool in "${cask_tools[@]}"; do
+  if ! brew list --cask $tool &>/dev/null; then
+    echo -e "${sep}Installing $tool..."
+    brew install --cask $tool
+  else
+    echo "$tool is already installed"
+  fi
+done
 
-# Install Python
-echo -e "${sep}Installing Python..."
-brew install python
+# Install NVM (using brew install nvm can't work well)
+# Check for .nvm directory and nvm.sh script file
+if [ -d "$HOME/.nvm" ] && [ -s "$HOME/.nvm/nvm.sh" ]; then
+    echo "NVM is already installed"
+else
+    echo -e "${sep}Installing NVM..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+fi
 
-# Install NVM (using brew install nvm, that can't work well)
-echo -e "${sep}Installing NVM..."
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-# brew install nvm
+# Source nvm script
+[ -s "$HOME/.nvm/nvm.sh" ] && \. "$HOME/.nvm/nvm.sh"
 
-# Install fzf
-echo -e "${sep}Installing fzf..."
-brew install fzf
+# Define Node.js version as your requirement
+node_version="18.17.1"
+
+# Install Node version if it's not installed, and use it
+if nvm ls $node_version >/dev/null 2>&1; then
+    echo "Node.js version $node_version is already installed"
+else
+    echo -e "${sep}Installing Node.js version $node_version..."
+    nvm install $node_version
+fi
+nvm use $node_version
 
 # Define the lines to be added
-line1='export NVM_DIR="$HOME/.nvm"'
-line2='[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm'
-line3='[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
-line4='eval "$(fzf --zsh)"'
-
-# Define the file to be checked
-file="$HOME/.zshrc"
+lines=(
+  'export HOMEBREW_NO_AUTO_UPDATE=1 # disable the brew auto update'
+  'export NVM_DIR="$HOME/.nvm"'
+  '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm'
+  '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion'
+  'eval "$(fzf --zsh)"'
+)
 
 # Check if the lines already exist in the file, if not, add them
-echo -e "${sep}Checking .zshrc for NVM, fzf configurations..."
-(grep -xqF "$line1" "$file" || echo "$line1" >> "$file") &&
-(grep -xqF "$line2" "$file" || echo "$line2" >> "$file") &&
-(grep -xqF "$line3" "$file" || echo "$line3" >> "$file") &&
-(grep -xqF "$line4" "$file" || echo "$line4" >> "$file")
+file="$HOME/.zshrc" # Define the file to be checked
+echo -e "${sep}Adding configurations to .zshrc for brew, NVM, fzf, etc."
+for line in "${lines[@]}"; do
+  if ! grep -Fxq "$line" "$file"; then
+    echo "$line" >> "$file\n"
+  fi
+done
+echo -e "Done${sep}"
 
-# Check if the directory exists, if not, create it
-if [ ! -d "$HOME/.nvm" ]; then
-  echo "Directory .nvm does not exist. Creating it..."
-  mkdir "$HOME/.nvm"
-fi
-#
-# Install neovim binary
-echo -e "${sep}Installing Neovim binary..."
-brew install neovim
-
+# Check if the Neovim configurations exist, if not, install them
 if [ ! -f "$HOME/.config/nvim/init.lua" ]; then
-  # Install Neovim configurations
   echo -e "${sep}Installing Neovim configurations..."
   if [ -d "$HOME/.setup_neovim/" ]; then
     rm -rf "$HOME/.setup_neovim"
@@ -92,8 +110,13 @@ if [ ! -f "$HOME/.config/nvim/init.lua" ]; then
 
   # cleanup the temporary install folder
   rm -rf "$HOME/.setup_neovim"
+
+  echo -e "Neovim configurations is installed"
 else
-  echo "The Neovim configurations exist"
+  echo "The Neovim configurations are already installed"
 fi
-echo -e "${sep}All tasks completed!"
+
+echo -e "${sep}"
+echo -e "\033[0;32mAll tasks completed!\033[0m"
+
 
