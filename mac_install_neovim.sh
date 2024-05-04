@@ -29,7 +29,7 @@ else
 fi
 
 # Install tools with 'brew install'
-tools=("wget" "ripgrep" "python" "fzf" "neovim")
+tools=("wget" "ripgrep" "python" "fzf" "neovim" "lazygit")
 for tool in "${tools[@]}"; do
   if ! brew list $tool &>/dev/null; then
     echo -e "${sep}Installing $tool..."

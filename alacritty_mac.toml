@@ -1,0 +1,30 @@
+import = [
+    "~/.config/alacritty/themes/themes/coolnight.toml"
+]
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+
+position.x = 900
+position.y = 120
+
+padding.x = 0
+padding.y = 0
+
+dimensions.columns = 150
+dimensions.lines = 50
+
+[font]
+normal.family = "MesloLGS Nerd Font Mono"
+
+#regular
+size = 15 
+
+[scrolling]
+history = 10000
+
+[selection]
+save_to_clipboard = true
+
