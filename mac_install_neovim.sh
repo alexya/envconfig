@@ -88,7 +88,7 @@ file="$HOME/.zshrc" # Define the file to be checked
 echo -e "${sep}Adding configurations to .zshrc for brew, NVM, fzf, etc."
 for line in "${lines[@]}"; do
   if ! grep -Fxq "$line" "$file"; then
-    echo "$line" >> "$file\n"
+    echo "$line" >> "$file"
   fi
 done
 echo -e "Done${sep}"
