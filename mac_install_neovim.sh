@@ -29,7 +29,7 @@ else
 fi
 
 # Install tools with 'brew install'
-tools=("wget" "ripgrep" "python" "fzf" "neovim" "lazygit")
+tools=("wget" "ripgrep" "python" "fzf" "neovim" "lazygit" "alacritty")
 for tool in "${tools[@]}"; do
   if ! brew list $tool &>/dev/null; then
     echo -e "${sep}Installing $tool..."
@@ -93,28 +93,51 @@ for line in "${lines[@]}"; do
 done
 echo -e "Done${sep}"
 
+# Define the directories and files
+SETUP_DIR="$HOME/.setup_env"
+DEV_ENV_DIR="$SETUP_DIR/dev-env"
+ALACRITTY_DIR="$HOME/.config/alacritty"
+ALACRITTY_CONFIG="$ALACRITTY_DIR/alacritty.toml"
+NVIM_DIR="$HOME/.config/nvim"
+NVIM_CONFIG="$NVIM_DIR/init.lua"
+
 # Check if the Neovim configurations exist, if not, install them
-if [ ! -f "$HOME/.config/nvim/init.lua" ]; then
+if [ ! -f "$NVIM_CONFIG" ]; then
   echo -e "${sep}Installing Neovim configurations..."
-  if [ -d "$HOME/.setup_neovim/" ]; then
-    rm -rf "$HOME/.setup_neovim"
-  fi
-  mkdir "$HOME/.setup_neovim/"
-  git clone https://github.com/alexya/josean-dev-env.git "$HOME/.setup_neovim/dev-env"
-  ls -lah "$HOME/.setup_neovim/dev-env/.config"
 
-  rm -rf "$HOME/.config/nvim"
-  rm -rf "$HOME/.local/share/nvim"
-  rm -rf "$HOME/.local/state/nvim"
-  cp -r -f "$HOME/.setup_neovim/dev-env/.config/nvim" "$HOME/.config"
+  # Remove setup folder if it exists
+  [ -d "$SETUP_DIR" ] && rm -rf "$SETUP_DIR"
 
-  # cleanup the temporary install folder
-  rm -rf "$HOME/.setup_neovim"
+  # Clone the dev-env repository
+  mkdir "$SETUP_DIR"
+  git clone https://github.com/alexya/josean-dev-env.git "$DEV_ENV_DIR"
 
-  echo -e "Neovim configurations is installed"
+  # Remove existing nvim folders
+  rm -rf "$NVIM_DIR" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim"
+
+  # Copy nvim configuration
+  cp -r -f "$DEV_ENV_DIR/.config/nvim" "$HOME/.config"
+
+  echo -e "Neovim configurations are installed"
 else
   echo "The Neovim configurations are already installed"
 fi
+
+# Check if the Alacritty configurations exist, if not, copy them
+if [ -f "$ALACRITTY_CONFIG" ]; then
+  echo "The configurations of the alacritty are already installed"
+else
+  echo "Installing Alacritty configurations..."
+  if [ ! -d "$SETUP_DIR" ]; then
+    mkdir "$SETUP_DIR"
+    git clone https://github.com/alexya/josean-dev-env.git "$DEV_ENV_DIR"
+  fi
+  cp -r -f "$DEV_ENV_DIR/.config/alacritty" "$HOME/.config"
+  echo -e "Alacritty configurations are installed"
+fi
+
+# Remove setup folder if it exists
+[ -d "$SETUP_DIR" ] && rm -rf "$SETUP_DIR"
 
 echo -e "${sep}"
 echo -e "\033[0;32mAll tasks completed!\033[0m"
