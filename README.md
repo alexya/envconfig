@@ -1,4 +1,4 @@
-# Configure vim and oh-my-zsh quickly on Linux or Mac OSX
+# Configure vim and oh-my-zsh on Linux or macOS
 
 ## Requirements
 * Vim and zsh should be installed firstly
@@ -41,8 +41,28 @@
     ./mac_install.sh
     ```
 
-## Install on Windows (TBD)
-* FAILED to build the LuaSnip vim plugin so far, refer to https://github.com/LunarVim/LunarVim/issues/4045#issuecomment-1534928815
+## Install on Windows
+* Git clone the current repo
+* Go to the local folder and start a powershell command window with admin privilge, or a normal powershell window and open the privilge manually
+* run the command
+    ```
+    .\win_install.ps1
+
+    Usage: .\setup.ps1 [-tools] [-nvim] [-python] [-7zip] [-kdiff3] [-vsc] [-vs] [-all]
+
+    Options:
+      -tools      Install the tools/softwares through Scoop
+      -font       Install developer-friendly fonts
+      -nvim       Configure for the neovim and alacritty
+      -python     Install Python
+      -7zip       Install 7zip
+      -kdiff3     Install KDiff3
+      -vsc        Install Visual Studio Code
+      -vs         Install Visual Studio
+      -all        Install all above
+      -help       Print this help message
+    ```
+* NOTE: failed to build the LuaSnip plugin so far, refer to https://github.com/LunarVim/LunarVim/issues/4045#issuecomment-1534928815
 
 ### References
 Refer to: https://github.com/josean-dev/dev-environment-files/tree/main/.config/nvim
