@@ -97,6 +97,7 @@ git config --global mergetool.kdiff3.trustExitCode false
 git config --global diff.tool nvim
 git config --global difftool.nvim.cmd 'nvim -d $LOCAL $REMOTE'
 
+git config --global core.pager "less -F -X"
 
 # Install NVM (using brew install nvm can't work well)
 # Check for .nvm directory and nvm.sh script file
