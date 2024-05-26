@@ -31,8 +31,8 @@
 * Oh-my-zsh https://github.com/robbyrussell/oh-my-zsh
 * posh-git-sh https://github.com/lyze/posh-git-sh
 
-# Install and configure Neovim
-Refer to: https://github.com/josean-dev/dev-environment-files/tree/main/.config/nvim
+
+# Install and configure development environment
 ## Install on MacOS
 * Git clone the current repo
 * Go to the local folder and run the command(s)
@@ -42,11 +42,10 @@ Refer to: https://github.com/josean-dev/dev-environment-files/tree/main/.config/
     ```
 
 ## Install on Windows (TBD)
-* refero to: https://github.com/LunarVim/LunarVim/issues/4045#issuecomment-1534928815
-* pre-request: make, cmake, gcc, they can be installed by `scoop`
-* `uname` and `pwd` need to launch `nvim` under the tool `cmder.exe` environment which contains these two tools
-* FAILED to build the LuaSnip vim plugin so far.
+* FAILED to build the LuaSnip vim plugin so far, refer to https://github.com/LunarVim/LunarVim/issues/4045#issuecomment-1534928815
+
+### References
+Refer to: https://github.com/josean-dev/dev-environment-files/tree/main/.config/nvim
 
 ### License
-
 This is distributed under the GNU GPL v2.0.
