@@ -50,6 +50,54 @@ for tool in "${cask_tools[@]}"; do
   fi
 done
 
+# Install KDiff3 application
+KDIFF3_DMG_PATH=~/Downloads/kdiff3-1.11.1-macos-arm64.dmg
+KDIFF3_VOLUME_NAME="KDiff3"
+KDIFF3_VOLUME_PATH="/Volumes/$KDIFF3_VOLUME_NAME"
+KDIFF3_APP_NAME="kdiff3.app"
+KDIFF3_APP_PATH="/Applications/$KDIFF3_APP_NAME/Contents/MacOS/kdiff3"
+KDIFF3_DOWNLOAD_URL="https://download.kde.org/stable/kdiff3/kdiff3-1.11.1-macos-arm64.dmg"
+
+# Check if kdiff3 is already installed
+if [ ! -f "$KDIFF3_APP_PATH" ]; then
+  # kdiff3 is not installed, download it if necessary
+  if [ ! -f "$KDIFF3_DMG_PATH" ]; then
+    curl -L "$KDIFF3_DOWNLOAD_URL" -o "$KDIFF3_DMG_PATH"
+  else
+    echo "$KDIFF3_DMG_PATH exists"
+  fi
+
+  # Mount the .dmg file
+  echo "attaching kdiff3 image..."
+  hdiutil attach "$KDIFF3_DMG_PATH" -nobrowse -noautoopen -mountpoint "$KDIFF3_VOLUME_PATH"
+
+  # Copy the application to the Applications directory
+  echo "installing kdiff3 application..."
+  cp -R "$KDIFF3_VOLUME_PATH/$KDIFF3_APP_NAME" /Applications
+
+  # Detach the .dmg file
+  echo "detaching kdiff3 image..."
+  hdiutil detach "$KDIFF3_VOLUME_PATH"
+  echo "kdiff3 is installed successfully"
+else
+  echo "kdiff3 is already installed"
+fi
+
+# Set git configs
+echo "Setup git configuration"
+git config --global diff.tool kdiff3
+git config --global diff.guitool kdiff3
+git config --global difftool.prompt false
+git config --global difftool.kdiff3.path "$KDIFF3_APP_PATH"
+git config --global difftool.kdiff3.trustExitCode false
+git config --global merge.tool kdiff3
+git config --global mergetool.prompt false
+git config --global mergetool.kdiff3.path "$KDIFF3_APP_PATH"
+git config --global mergetool.kdiff3.trustExitCode false
+git config --global diff.tool nvim
+git config --global difftool.nvim.cmd 'nvim -d $LOCAL $REMOTE'
+
+
 # Install NVM (using brew install nvm can't work well)
 # Check for .nvm directory and nvm.sh script file
 if [ -d "$HOME/.nvm" ] && [ -s "$HOME/.nvm/nvm.sh" ]; then

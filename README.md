@@ -19,7 +19,7 @@
 
 ## What will be installed
 * Copy my own customized .vimrc
-* Install plug-in management tool of vim - Vundle
+* Install plug-in management tool of vim through Vundle
 * Install some useful plug-ins for vim
 * Install oh-my-zsh and use my own configuration
 
@@ -31,10 +31,15 @@
 * Oh-my-zsh https://github.com/robbyrussell/oh-my-zsh
 * posh-git-sh https://github.com/lyze/posh-git-sh
 
-### Powerful configuration for Neovim
+# Install and configure Neovim
 Refer to: https://github.com/josean-dev/dev-environment-files/tree/main/.config/nvim
 ## Install on MacOS
-* Copy the files to the ~/.config/nvim, and open `nvim`, all the plugins will be installed automatically
+* Git clone the current repo
+* Go to the local folder and run the command(s)
+    ```
+    chmod +x ./mac_install.sh
+    ./mac_install.sh
+    ```
 
 ## Install on Windows (TBD)
 * refero to: https://github.com/LunarVim/LunarVim/issues/4045#issuecomment-1534928815
