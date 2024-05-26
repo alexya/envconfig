@@ -1,5 +1,4 @@
 param (
-    [switch]$var = $false,
     [switch]$tools = $false,
     [switch]$font = $false,
     [switch]$nvim = $false,
@@ -13,7 +12,6 @@ param (
 )
 # If --all is specified, set all other parameters to true
 if($all){
-    $var = $true
     $tools = $true
     $font = $true
     $nvim = $true
@@ -25,11 +23,10 @@ if($all){
 }
 
 # If --help or no parameters are specified, print the help message
-if($help -or ($var -eq $false -and $tools -eq $false -and $font -eq $false -and $nvim -eq $false -and $python -eq $false -and $7zip -eq $false -and $kdiff3 -eq $false -and $vsc -eq $false -and $vs -eq $false -and $all -eq $false)){
-    Write-Output "Usage: .\setup.ps1 [-var] [-tools] [-nvim] [-python] [-7zip] [-kdiff3] [-vsc] [-vs] [-all]"
+if($help -or ($tools -eq $false -and $font -eq $false -and $nvim -eq $false -and $python -eq $false -and $7zip -eq $false -and $kdiff3 -eq $false -and $vsc -eq $false -and $vs -eq $false -and $all -eq $false)){
+    Write-Output "Usage: .\setup.ps1 [-tools] [-nvim] [-python] [-7zip] [-kdiff3] [-vsc] [-vs] [-all]"
     Write-Output ""
     Write-Output "Options:"
-    Write-Output "  -var        Check and set environment variables"
     Write-Output "  -tools      Install the tools/softwares through Scoop"
     Write-Output "  -font       Install developer-friendly fonts"
     Write-Output "  -nvim       Configure for the neovim and alacritty"
@@ -274,31 +271,6 @@ function Install-Python {
 # END define local variables and functions
 
 # Execute the setup/install by the parameters
-
-# environment variables
-if ($var) {
-  # prompt and add the system/machine environment variables
-  $variables = [ordered]@{
-      "ACARTIFACTORYUSER" = "The username on the Artifactory server";
-      "ACARTIFACTORYPWD" = "The Artifactory API/Identity Token";
-      "ACPACKAGEDIR" = "Set it to an SSD drive that has enough space available, > 100GB, e.g. C:\Packages";
-      "ACGITUSER" = "Please enter your company Git account username";
-      "ACGITPWD" = "Please enter your Git personal access token"
-  }
-
-  $envs = @{}
-  $maxKeyLength = ($variables.Keys | Measure-Object -Maximum -Property Length).Maximum
-  foreach($item in $variables.Keys) {
-      $value = [System.Environment]::GetEnvironmentVariable($item, "User")
-      if($null -eq $value) {
-          $value = Read-Host -Prompt "Please enter a value for $item. Note: $($variables[$item])"
-          [System.Environment]::SetEnvironmentVariable($item, $value, "User")
-      } else {
-          Write-Output "$($item.PadRight($maxKeyLength)) already exists in the User environment variables"
-      }
-      $envs.Add($item, $value)
-  }
-}
 
 if ($tools) {
   # Check for Scoop installation
