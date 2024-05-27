@@ -40,6 +40,22 @@
     chmod +x ./mac_install.sh
     ./mac_install.sh
     ```
+* The following softwares will be installed
+    ```
+    nvm
+    nodejs
+    wget
+    ripgrep
+    python
+    fzf
+    lazygit
+    neovim
+    alacritty
+    iterm2
+    kdiff3
+    font-meslo-lg-nerd-font
+    Xcode Command Line Tools
+    ```
 
 ## Install on Windows
 * Git clone the current repo
