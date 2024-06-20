@@ -20,13 +20,18 @@ fi
 # in the current running environment, disable the brew auto update
 export HOMEBREW_NO_AUTO_UPDATE=1
 
-# Tap into homebrew/cask-fonts
-if ! brew tap | grep -q 'homebrew/cask-fonts'; then
-    echo -e "${sep}Tapping into homebrew/cask-fonts..."
-    brew tap homebrew/cask-fonts
-else
-    echo "homebrew/cask-fonts is already tapped"
-fi
+# Define an array of taps
+taps=("homebrew/cask-fonts" "epk/epk")
+
+# Tap into the repositories in the taps array if not already done
+for tap in "${taps[@]}"; do
+    if ! brew tap | grep -q "$tap"; then
+        echo -e "${sep}Tapping into $tap..."
+        brew tap $tap
+    else
+        echo "$tap is already tapped"
+    fi
+done
 
 # Install tools with 'brew install'
 tools=("wget" "ripgrep" "python" "fzf" "neovim" "lazygit" "alacritty")
@@ -40,7 +45,7 @@ for tool in "${tools[@]}"; do
 done
 
 # Install tools with 'brew install --cask'
-cask_tools=("iterm2" "font-meslo-lg-nerd-font")
+cask_tools=("iterm2" "font-meslo-lg-nerd-font" "font-sf-mono-nerd-font")
 for tool in "${cask_tools[@]}"; do
   if ! brew list --cask $tool &>/dev/null; then
     echo -e "${sep}Installing $tool..."
