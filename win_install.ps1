@@ -1,57 +1,102 @@
 param (
-    [switch]$tools = $false,
-    [switch]$font = $false,
-    [switch]$nvim = $false,
-    [switch]$python = $false,
-    [switch]$7zip = $false,
-    [switch]$kdiff3 = $false,
-    [switch]$vsc = $false,
-    [switch]$vs = $false,
-    [switch]$help = $false,
-    [switch]$all = $false
+  [switch]$tools     = $false,
+  [switch]$font      = $false,
+  [switch]$nvim      = $false,
+  [switch]$python    = $false,
+  [switch]$zip7      = $false,
+  [switch]$kdiff3    = $false,
+  [switch]$sourcegit = $false,
+  [switch]$vsc       = $false,
+  [switch]$vs        = $false,
+  [switch]$vcredist  = $false,
+  [switch]$help      = $false,
+  [switch]$all       = $false
 )
+
 # If --all is specified, set all other parameters to true
-if($all){
-    $tools = $true
-    $font = $true
-    $nvim = $true
-    $python = $true
-    $7zip = $true
-    $kdiff3 = $true
-    $vsc = $true
-    $vs = $true
+if ($all) {
+  $tools     = $true
+  $font      = $true
+  $nvim      = $true
+  $python    = $true
+  $zip7      = $true
+  $kdiff3    = $true
+  $sourcegit = $true
+  $vsc       = $true
+  $vs        = $true
+  $vcredist  = $true
 }
 
-# If --help or no parameters are specified, print the help message
-if($help -or ($tools -eq $false -and $font -eq $false -and $nvim -eq $false -and $python -eq $false -and $7zip -eq $false -and $kdiff3 -eq $false -and $vsc -eq $false -and $vs -eq $false -and $all -eq $false)){
-    Write-Output "Usage: .\setup.ps1 [-tools] [-nvim] [-python] [-7zip] [-kdiff3] [-vsc] [-vs] [-all]"
-    Write-Output ""
-    Write-Output "Options:"
-    Write-Output "  -tools      Install the tools/softwares through Scoop"
-    Write-Output "  -font       Install developer-friendly fonts"
-    Write-Output "  -nvim       Configure for the neovim and alacritty"
-    Write-Output "  -python     Install Python"
-    Write-Output "  -7zip       Install 7zip"
-    Write-Output "  -kdiff3     Install KDiff3"
-    Write-Output "  -vsc        Install Visual Studio Code"
-    Write-Output "  -vs         Install Visual Studio"
-    Write-Output "  -all        Install all above"
-    Write-Output "  -help       Print this help message"
-    return
+# If -help or no parameters are specified, print the help message
+if (
+  $help -or
+  (
+    $tools     -eq $false -and
+    $font      -eq $false -and
+    $nvim      -eq $false -and
+    $python    -eq $false -and
+    $zip7      -eq $false -and
+    $kdiff3    -eq $false -and
+    $sourcegit -eq $false -and
+    $vsc       -eq $false -and
+    $vs        -eq $false -and
+    $vcredist  -eq $false -and
+    $all       -eq $false
+  )
+) {
+  # Define the parameters
+  $parameters = @(
+      "-tools",
+      "-font",
+      "-nvim",
+      "-python",
+      "-zip7",
+      "-kdiff3",
+      "-sourcegit",
+      "-vsc",
+      "-vs",
+      "-vcredist",
+      "-help",
+      "-all"
+  )
+
+  # Format the parameters with square brackets
+  $formattedParameters = $parameters | ForEach-Object { "[$_]" }
+
+  # Build the usage string
+  $usage = "Usage: .\setup.ps1 " + ($formattedParameters -join " ")
+
+  Write-Host $usage -ForegroundColor Green
+  Write-Output ""
+
+  Write-Output "Options:"
+  Write-Output "  -tools      Install the tools/softwares through Scoop"
+  Write-Output "  -font       Install developer-friendly fonts"
+  Write-Output "  -nvim       Configure for the neovim and alacritty"
+  Write-Output "  -python     Install Python"
+  Write-Output "  -zip7       Install 7-zip"
+  Write-Output "  -kdiff3     Install KDiff3 and configure it for git"
+  Write-Output "  -sourcegit  Install SourceGit, a GUI client for git"
+  Write-Output "  -vsc        Install Visual Studio Code"
+  Write-Output "  -vs         Install Visual Studio"
+  Write-Output "  -vcredist   Install vcredist 2005~2023"
+  Write-Output "  -all        Install all above"
+  Write-Output "  -help       Print this help message"
+  return
 }
 
 # Start define local variables and functions
 
-# define environment variables
+# define global variables
 $env:logs_dir = "C:\logs"
 
 # Check if the logs directory exists and create it if it doesn't
 if (-not (Test-Path -Path $env:logs_dir)) {
-    New-Item -ItemType Directory -Force -Path $env:logs_dir | Out-Null
+  New-Item -ItemType Directory -Force -Path $env:logs_dir | Out-Null
 }
 # Check if the temp folder exists and create it if it doesn't
 if (-not (Test-Path -Path $env:TEMP)) {
-    New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
+  New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
 }
 function getProgramsAndFeatures() {
   # get from the control panel -> programs and features
@@ -62,21 +107,22 @@ function getUninstallablePrograms() {
   Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName
 }
 function CheckOnUninstallablePrograms($programList, $programName) {
-    foreach ($program in $programList) {
-        if ($program.DisplayName -like "*$programName*") {
-            return $true
-        }
+  foreach ($program in $programList) {
+    if ($program.DisplayName -like "*$programName*") {
+      return $true
     }
-    return $false
+  }
+  return $false
 }
 function CheckOnProgramsAndFeatures($programList, $programName) {
-    foreach ($program in $programList) {
-        if ($program.Name -like "*$programName*") {
-            return $true
-        }
+  foreach ($program in $programList) {
+    if ($program.Name -like "*$programName*") {
+      return $true
     }
-    return $false
+  }
+  return $false
 }
+
 # Write-Host "Listing uninstallable Programs..."
 $uninstallablePrograms = getUninstallablePrograms
 # Write-Output $uninstallablePrograms
@@ -87,267 +133,309 @@ $uninstallablePrograms = getUninstallablePrograms
 
 # Define the function to install packages
 function InstallPackage {
-    param (
-        [Parameter(Mandatory)]
-        [string]$packageName
-    )
+  param (
+    [Parameter(Mandatory)]
+    [string]$packageName
+  )
 
-    # Check if packageName contains a '/'
-    if ($packageName -like "*/*") {
-        # Split packageName into bucket and name
-        $bucket, $name = $packageName -split '/', 2
-    } else {
-        $name = $packageName
-    }
+  # Check if packageName contains a '/'
+  if ($packageName -like "*/*") {
+    # Split packageName into bucket and name
+    $bucket, $name = $packageName -split '/', 2
+  }
+  else {
+    $name = $packageName
+  }
 
-    Write-Host -NoNewline "Checking for "
-    Write-Host -NoNewline -ForegroundColor Yellow $name
-    Write-Host " installation..."
+  Write-Host -NoNewline "Checking for "
+  Write-Host -NoNewline -ForegroundColor Yellow $name
+  Write-Host " installation..."
 
-    if (!(scoop list $name | Select-String -Pattern $name)) {
-        Write-Host -NoNewline -ForegroundColor Yellow "$name"
-        Write-Host " not found. Installing..."
-        scoop install $packageName
-    } else {
-        Write-Host -NoNewline -ForegroundColor Green "$name"
-        Write-Host " is already installed."
-    }
+  if (!(scoop list $name | Select-String -Pattern $name)) {
+    Write-Host -NoNewline -ForegroundColor Yellow "$name"
+    Write-Host " not found. Installing..."
+    scoop install $packageName
+  }
+  else {
+    Write-Host -NoNewline -ForegroundColor Green "$name"
+    Write-Host " is already installed."
+  }
 }
 
 # Define the function to install buckets
 function InstallBucket {
-    param (
-        [Parameter(Mandatory)]
-        [string]$bucketName
-    )
-    Write-Host -NoNewline "Checking for "
+  param (
+    [Parameter(Mandatory)]
+    [string]$bucketName
+  )
+  Write-Host -NoNewline "Checking for "
+  Write-Host -NoNewline -ForegroundColor Yellow $bucketName
+  Write-Host " bucket..."
+  if (!(scoop bucket list | Select-String -Pattern $bucketName)) {
     Write-Host -NoNewline -ForegroundColor Yellow $bucketName
-    Write-Host " bucket..."
-    if (!(scoop bucket list | Select-String -Pattern $bucketName)) {
-        Write-Host -NoNewline -ForegroundColor Yellow $bucketName
-        Write-Host " bucket not found. Adding..."
-        scoop bucket add $bucketName
-    } else {
-        Write-Host -ForegroundColor Green "$bucketName bucket is already added."
-    }
+    Write-Host " bucket not found. Adding..."
+    scoop bucket add $bucketName
+  }
+  else {
+    Write-Host -ForegroundColor Green "$bucketName bucket is already added."
+  }
 }
 
 function Download-From-Url {
-    param (
-        [Parameter(Mandatory)]
-        [string]$Url,
+  param (
+    [Parameter(Mandatory)]
+    [string]$Url,
 
-        [Parameter()]
-        [string]$DownloadFolder = $env:TEMP,
+    [Parameter()]
+    [string]$DownloadFolder = $env:TEMP,
 
-        [Parameter()]
-        [string]$FileName
-    )
+    [Parameter()]
+    [string]$FileName
+  )
 
-    # If FileName is not provided, parse the file name from the url
-    if (-not $FileName) {
-        $FileName = Split-Path $Url -Leaf
+  # If FileName is not provided, parse the file name from the url
+  if (-not $FileName) {
+    $FileName = Split-Path $Url -Leaf
+  }
+
+  # Set the destination path in the specified download folder
+  $destinationPath = Join-Path $DownloadFolder $FileName
+
+  # Check if the file already exists
+  if (-Not (Test-Path $destinationPath)) {
+    # Try to download the file
+    try {
+      Write-Host "Downloading $FileName ..."
+      Invoke-WebRequest -Uri $Url -OutFile $destinationPath
+      Write-Host "File downloaded successfully to $destinationPath"
+      return $destinationPath
     }
-
-    # Set the destination path in the specified download folder
-    $destinationPath = Join-Path $DownloadFolder $FileName
-
-    # Check if the file already exists
-    if (-Not (Test-Path $destinationPath)) {
-        # Try to download the file
-        try {
-            Write-Host "Downloading $FileName ..."
-            Invoke-WebRequest -Uri $Url -OutFile $destinationPath
-            Write-Host "File downloaded successfully to $destinationPath"
-            return $destinationPath
-        } catch {
-            # Throw an exception if download failed
-            Write-Host "ERROR: Failed to download the file from $Url"
-            throw "Failed to download the file from $Url"
-        }
-    } else {
-        Write-Host "File already exists at $destinationPath"
-        return $destinationPath
+    catch {
+      # Throw an exception if download failed
+      Write-Host "ERROR: Failed to download the file from $Url"
+      throw "Failed to download the file from $Url"
     }
+  }
+  else {
+    Write-Host "File already exists at $destinationPath"
+    return $destinationPath
+  }
 }
 
 function Curl-From-Url {
-    param (
-        [Parameter(Mandatory)]
-        [string]$Url,
+  param (
+    [Parameter(Mandatory)]
+    [string]$Url,
 
-        [Parameter(Mandatory)]
-        [string]$FileName,
+    [Parameter(Mandatory)]
+    [string]$FileName,
 
-        [Parameter()]
-        [string]$DownloadFolder = $env:TEMP
-    )
+    [Parameter()]
+    [string]$DownloadFolder = $env:TEMP
+  )
 
-    # Set the destination path in the specified download folder
-    $destinationPath = Join-Path $DownloadFolder $FileName
+  # Set the destination path in the specified download folder
+  $destinationPath = Join-Path $DownloadFolder $FileName
 
-    # Check if the file already exists
-    if (-Not (Test-Path $destinationPath)) {
-        # Try to download the file
-        try {
-            Write-Host "Downloading $FileName ..."
-            $Arguments = "-L", $Url, "-o", $destinationPath
-            Start-Process -NoNewWindow -FilePath "curl" -ArgumentList $Arguments -Wait
-            Write-Host "File downloaded successfully to $destinationPath"
-            return $destinationPath
-        } catch {
-            # Throw an exception if download failed
-            Write-Host "ERROR: Failed to download the file from $Url"
-            throw "Failed to download the file from $Url"
-        }
-    } else {
-        Write-Host "File already exists at $destinationPath"
-        return $destinationPath
+  # Check if the file already exists
+  if (-Not (Test-Path $destinationPath)) {
+    # Try to download the file
+    try {
+      Write-Host "Downloading $FileName ..."
+      $Arguments = "-L", $Url, "-o", $destinationPath
+      Start-Process -NoNewWindow -FilePath "curl" -ArgumentList $Arguments -Wait
+      Write-Host "File downloaded successfully to $destinationPath"
+      return $destinationPath
     }
+    catch {
+      # Throw an exception if download failed
+      Write-Host "ERROR: Failed to download the file from $Url"
+      throw "Failed to download the file from $Url"
+    }
+  }
+  else {
+    Write-Host "File already exists at $destinationPath"
+    return $destinationPath
+  }
 }
 
 function Check-Install {
-    param (
-        [Parameter(Mandatory)]
-        [string]$FilePath,
+  param (
+    [Parameter(Mandatory)]
+    [string]$FilePath,
 
-        [Parameter()]
-        [string]$InstallArgs = '/S',
+    # if the extension of the $FilePath is .zip, the $InstallArgs is the destination path
+    # if the extension of the $FilePath is .exe, the $InstallArgs is the arguments for the installation
+    [Parameter()]
+    [string]$InstallArgs = '/S',
 
-        [Parameter()]
-        [string]$TargetFile
-    )
+    [Parameter()]
+    [string]$TargetFile
+  )
 
-    # If TargetFile is provided, check if it exists
-    if ($TargetFile) {
-        if (Test-Path $TargetFile) {
-            Write-Host "Target file $TargetFile already exists"
-            return
-        }
+  # If the source file exists, try to install or extract it
+  if ($TargetFile) {
+    if (Test-Path $TargetFile) {
+      Write-Host "Target file $TargetFile already exists"
+      return
     }
+  }
 
-    # Check if the source file exists
-    if (Test-Path $FilePath) {
-        # If the source file exists, try to install it
-        try {
-			$name = Split-Path $FilePath -Leaf
-			Write-Host "Installing $name ..."
-            Start-Process -FilePath $FilePath -Wait -ArgumentList $InstallArgs -NoNewWindow -PassThru
-            Write-Host "$name installation succeeded"
-        } catch {
-            # Throw an exception if installation failed
-            Write-Host "ERROR: Failed to install the file from $FilePath"
-            throw "Failed to install the file from $FilePath"
-        }
-    } else {
-        # Throw an exception if the source file does not exist
-        Write-Host "ERROR: Source file $FilePath not found"
-        throw "Source file $FilePath not found"
+  # Check if the source file exists
+  if (Test-Path $FilePath) {
+    # If the source file exists, try to install it
+    try {
+      $name = Split-Path $FilePath -Leaf
+      $extension = [System.IO.Path]::GetExtension($name)
+
+      if ($extension -eq ".exe") {
+        Write-Host "Installing $name ..."
+        Start-Process -FilePath $FilePath -Wait -ArgumentList $InstallArgs -NoNewWindow -PassThru
+        Write-Host "$name installation succeeded"
+      }
+      elseif ($extension -eq ".zip") {
+        Write-Host "Extracting $name to $InstallArgs ..."
+        Expand-Archive -Path $FilePath -DestinationPath $InstallArgs -Force
+        Write-Host "$name extraction succeeded"
+      }
+      else {
+        Write-Host "ERROR: Unsupported file extension $extension"
+        throw "Unsupported file extension $extension"
+      }
     }
+    catch {
+      # Throw an exception if installation failed
+      Write-Host "ERROR: Failed to install the file from $FilePath"
+      throw "Failed to install the file from $FilePath"
+    }
+  }
+  else {
+    # Throw an exception if the source file does not exist
+    Write-Host "ERROR: Source file $FilePath not found"
+    throw "Source file $FilePath not found"
+  }
 }
 
 function Install-Python {
-    param (
-        [Parameter(Mandatory)]
-        [string]$Name,
-        [Parameter(Mandatory)]
-        [string]$python_dir
-    )
-    $Arguments = "/quiet", "InstallAllUsers=1", "PrependPath=1", "/log", "`"${env:logs_dir}\python.log`"", "`"TargetDir=$python_dir`""
-    $proc = Start-Process $Name -Wait -ArgumentList $Arguments -PassThru
-    if ($proc.ExitCode -ne 0) {
-        Write-Host "ERROR: python installation failed with return code: $($proc.ExitCode)"
-        Write-Host "Python installation logs below:"
-        Get-Content "${env:logs_dir}\python.log"
-        throw "Python installation failed"
-    }
-    Get-ChildItem -Path "$python_dir"
-    New-Item -Path "$python_dir\python3.exe" -ItemType SymbolicLink -Value "$python_dir\python.exe"
-    New-Item -Path "$python_dir\pythonw3.exe" -ItemType SymbolicLink -Value "$python_dir\pythonw.exe"
-    Start-Process -FilePath "$python_dir\python3.exe" -Wait -ArgumentList "-m pip install -U pip setuptools" -PassThru
-    Start-Process -FilePath "$python_dir\scripts\pip3.exe" -Wait -ArgumentList "install virtualenv" -PassThru
+  param (
+    [Parameter(Mandatory)]
+    [string]$Name,
+    [Parameter(Mandatory)]
+    [string]$python_dir
+  )
+  $Arguments = "/quiet", "InstallAllUsers=1", "PrependPath=1", "/log", "`"${env:logs_dir}\python.log`"", "`"TargetDir=$python_dir`""
+  $proc = Start-Process $Name -Wait -ArgumentList $Arguments -PassThru
+  if ($proc.ExitCode -ne 0) {
+    Write-Host "ERROR: python installation failed with return code: $($proc.ExitCode)"
+    Write-Host "Python installation logs below:"
+    Get-Content "${env:logs_dir}\python.log"
+    throw "Python installation failed"
+  }
+  Get-ChildItem -Path "$python_dir"
+  New-Item -Path "$python_dir\python3.exe" -ItemType SymbolicLink -Value "$python_dir\python.exe"
+  New-Item -Path "$python_dir\pythonw3.exe" -ItemType SymbolicLink -Value "$python_dir\pythonw.exe"
+  Start-Process -FilePath "$python_dir\python3.exe" -Wait -ArgumentList "-m pip install -U pip setuptools" -PassThru
+  Start-Process -FilePath "$python_dir\scripts\pip3.exe" -Wait -ArgumentList "install virtualenv" -PassThru
 }
 
-# END define local variables and functions
 
-# Execute the setup/install by the parameters
+# By default, the "Scoop" will always be installed
+# Start Scoop Installation
+Write-Host "Checking for Scoop installation..."
+if (!(Get-Command scoop -ErrorAction SilentlyContinue)) {
+  Write-Host "Scoop not found. Installing Scoop..."
+  Set-ExecutionPolicy RemoteSigned -scope CurrentUser
+  # iwr -useb get.scoop.sh | iex
+
+  # if you current logon user is a Administrator, please try to install the scoop by the following command
+  # and then re-run the current powershell script, refer to: https://github.com/ScoopInstaller/Install
+  Invoke-Expression "& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin"
+}
+else {
+  Write-Host "Scoop is already installed."
+}
+
+# Check and install a portable 'git', which is a prerequisite for the following installation
+InstallPackage -packageName 'git'
+# using the git manager to manage the related credentials
+# git config --global credential.helper wincred
+
+# Check if buckets 'extras', 'nerd-fonts', and 'sysinternals' exist and install them if not
+$bucketArray = @('extras', 'nerd-fonts', 'sysinternals')
+foreach ($bucket in $bucketArray) {
+  InstallBucket -bucketName $bucket
+}
+# End Scoop Installation
+
+if ($vcredist) {
+  # Install vcredist from Scoop
+  $vcArray = @(
+    'extras/vcredist2005', # install vcredist 2005, 2008, 2010, 2012, 2013.
+    'extras/vcredist2008',
+    'extras/vcredist2010',
+    'extras/vcredist2012',
+    'extras/vcredist2013',
+    'extras/vcredist2022' # including vcredist 2015, 2017, 2019, and 2022
+  )
+
+  foreach ($app in $vcArray) {
+    # Call the function to check and install each app
+    InstallPackage -packageName $app
+  }
+}
 
 if ($tools) {
-  # Check for Scoop installation
-  Write-Host "Checking for Scoop installation..."
-  if (!(Get-Command scoop -ErrorAction SilentlyContinue)) {
-      Write-Host "Scoop not found. Installing Scoop..."
-      Set-ExecutionPolicy RemoteSigned -scope CurrentUser
-      # iwr -useb get.scoop.sh | iex
-
-      # if you current logon user is a Administrator, please try to install the scoop by the following command
-      # and then re-run the current powershell script, refer to: https://github.com/ScoopInstaller/Install
-      iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
-  } else {
-      Write-Host "Scoop is already installed."
-  }
-
-  # Check and install 'git', which is a prerequisite for the following installation
-  InstallPackage -packageName 'git'
-
-  # Check if buckets 'extras', 'nerd-fonts', and 'sysinternals' exist and install them if not
-  $bucketArray = @('extras', 'nerd-fonts', 'sysinternals')
-  foreach ($bucket in $bucketArray) {
-      InstallBucket -bucketName $bucket
-  }
-
   # Install software(s) from Scoop
   $appArray = @(
-      # tools with GUI
-      'extras/vcredist2005', # install vcredist 2005, 2008, 2010, 2012, 2013.
-      'extras/vcredist2008',
-      'extras/vcredist2010',
-      'extras/vcredist2012',
-      'extras/vcredist2013',
-      'extras/vcredist2022', # including vcredist 2015, 2017, 2019, and 2022
-      'extras/everything', # A tool to locate files and folders by name instantly.
-      'extras/alacritty', # A GPU-accelerated terminal emulator
-      'extras/handbrake', # A tool for converting video from nearly any format to a selection of modern, widely supported codecs.
-      'extras/lazygit',
-      'extras/mkcert',
-      # command line tools
-      'main/cmder-full', # a terminal tool running on Windows
-      'main/neovim@0.9.5', # Vim-fork focused on extensibility and usability
-      'main/yarn',
-      'main/nvm', # A node.js version management utility for Windows
-      'main/wget',
-      'main/ripgrep',
-      'main/fzf',
-      'main/make',
-      'main/cmake',
-      'main/gcc',
-      # 'main/ffmpeg',
-      # windows famous sysinternals tool
-      'sysinternals/sysinternals-suite'
+    # tools with GUI
+    'extras/everything', # A tool to locate files and folders by name instantly.
+    'extras/alacritty', # A GPU-accelerated terminal emulator
+    'extras/handbrake', # A tool for converting video from nearly any format to a selection of modern, widely supported codecs.
+    'extras/lazygit',
+    'extras/mkcert',
+    'extras/posh-git', # PowerShell module that integrates Git and PowerShell by providing Git status summary information
+    # command line tools
+    'main/cmder-full', # a terminal tool running on Windows
+    'main/neovim@0.9.5', # Vim-fork focused on extensibility and usability (0.10.0 is unstable)
+    'main/yarn',
+    'main/nvm', # A node.js version management utility for Windows
+    'main/wget',
+    'main/ripgrep',
+    'main/fzf',
+    'main/make',
+    'main/cmake',
+    'main/gcc',
+    # 'main/ffmpeg',
+    # windows famous sysinternals tool
+    'sysinternals/sysinternals-suite'
   )
 
   foreach ($app in $appArray) {
-      # Call the function to check and install each app
-      InstallPackage -packageName $app
+    # Call the function to check and install each app
+    InstallPackage -packageName $app
   }
+
+  # Setup git prompt - posh-git on the powershell terminal
+  Import-Module "$env:USERPROFILE\scoop\apps\posh-git\current\posh-git.psd1"
+  Add-PoshGitToProfile
 }
 
 if ($font) {
-  # List of fonts to be installed
+  # List of programming/coding fonts to be installed
   $fontArray = @(
-      'nerd-fonts/Hack-NF-Mono',
-      'nerd-fonts/Agave-NF-Mono',
-      'nerd-fonts/Meslo-NF-Mono',
-      'nerd-fonts/FiraCode-NF-Mono',
-      'nerd-fonts/Inconsolata-NF-Mono',
-      'nerd-fonts/CascadiaMono-NF-Mono',
-      'nerd-fonts/JetBrainsMono-NF-Mono',
-      'nerd-fonts/DejaVuSansMono-NF-Mono'
+    'nerd-fonts/Hack-NF-Mono',
+    'nerd-fonts/Agave-NF-Mono',
+    'nerd-fonts/Meslo-NF-Mono',
+    'nerd-fonts/FiraCode-NF-Mono',
+    'nerd-fonts/Inconsolata-NF-Mono',
+    'nerd-fonts/CascadiaMono-NF-Mono',
+    'nerd-fonts/JetBrainsMono-NF-Mono',
+    'nerd-fonts/DejaVuSansMono-NF-Mono'
   )
 
   foreach ($app in $fontArray) {
-      # Call the function to check and install each app
-      InstallPackage -packageName $app
+    # Call the function to check and install each app
+    InstallPackage -packageName $app
   }
 }
 
@@ -399,20 +487,22 @@ if ($nvim) {
       # Add open with Neovim to the context menu if you want to
       # Run the reg file
       Start-Process -FilePath "regedit.exe" -ArgumentList "/s $regFilePath"
-    } else {
-        Write-Output "alacritty.exe does not exist at the specified path."
     }
-    
+    else {
+      Write-Output "alacritty.exe does not exist at the specified path."
+    }
+
     Write-Host "The configurations of the Neovim has been installed."
 
     # NOTE: The Neovim plunins need to access npmjs website, a mirror may be needed to set in .npmrc
     Write-Host "Please open the Neovim in a Terminal window to complete the plugins setup."
-  } else {
+  }
+  else {
     Write-Host "The Neovim has been configured before."
   }
 
   # install node tool nvm
-  $nodeVersion = "18.17.1"
+  $nodeVersion = "18.20.4"
   nvm install $nodeVersion
   nvm use $nodeVersion
   $nodeVersion = node --version
@@ -420,28 +510,30 @@ if ($nvim) {
 }
 
 if ($python) {
-  # install python 3.9 (need to change the version according to the environment requirement)
-  $python_folder = "C:\python39"
+  # install python 3.12.4 (need to change the version according to the environment requirement)
+  $python_folder = "C:\python3"
   $python_path = Join-Path -Path $python_folder -ChildPath "python.exe"
-  if(-Not (Test-Path $python_path)) {
+  if (-Not (Test-Path $python_path)) {
     Write-Output "Installing python..."
-    $python_url = "https://www.python.org/ftp/python/3.9.10/python-3.9.10-amd64.exe"
+    $python_url = "https://www.python.org/ftp/python/3.12.4/python-3.12.4-amd64.exe"
     $python_name = Split-Path -Path $python_url -Leaf
     Invoke-WebRequest -Uri $python_url -OutFile "$env:TEMP\$python_name"
     Install-Python -Name "$env:TEMP\$python_name" -python_dir $python_folder
-  } else {
+  }
+  else {
     Write-Output "Python.exe exists at $python_path"
   }
 }
 
-if ($7zip) {
+if ($zip7) {
   # install 7zip
   $7zip_dst = "C:\Program Files\7-Zip\7z.exe"
   if (-Not (Test-Path $7zip_dst)) {
     $7zip_url = "https://github.com/mcmilk/7-Zip-zstd/releases/download/v22.01-v1.5.4-R1/7z22.01-zstd-x64.exe"
     $7zip_src = Download-From-Url -Url $7zip_url
     Check-Install -FilePath $7zip_src -TargetFile $7zip_dst -InstallArgs  "/S /D=`"C:\Program Files\7-Zip\`""
-  } else {
+  }
+  else {
     Write-Host "7-zip exists at $7zip_dst"
   }
 }
@@ -450,11 +542,12 @@ if ($kdiff3) {
   $kdiff3_dst = "C:/Program Files/KDiff3/bin/kdiff3.exe"
   if (-Not (Test-Path $kdiff3_dst)) {
     $kdiff3_url = "https://download.kde.org/stable/kdiff3/kdiff3-1.11.0-windows-x86_64.exe"
-      $kdiff3_src = Download-From-Url -Url $kdiff3_url
-      Check-Install -FilePath $kdiff3_src -TargetFile $kdiff3_dst
-  } else {
+    $kdiff3_src = Download-From-Url -Url $kdiff3_url
+    Check-Install -FilePath $kdiff3_src -TargetFile $kdiff3_dst
+  }
+  else {
     Write-Host "kdiff3 exists at $kdiff3_dst"
-  } 
+  }
 
   # Update the .gitconfig for KDiff3 as diff and merge tool
   Write-Host "Git diff and merge tool are configured"
@@ -473,6 +566,34 @@ if ($kdiff3) {
   git config --global core.pager "less -F -X"
 }
 
+if ($sourcegit) {
+  # install sourcegit
+  $sourcegit_dst = "C:/Program Files/SourceGit/SourceGit.exe"
+  $sourcegit_installDir = "C:/Program Files" # because the sourcezip*.zip contains a 'SourceGit' sub folder
+  if (-Not (Test-Path $sourcegit_dst)) {
+    $sourcegit_url = "https://github.com/sourcegit-scm/sourcegit/releases/download/v8.21/sourcegit_8.21.win-x64.zip"
+    $sourcegit_src = Download-From-Url -Url $sourcegit_url
+    Check-Install -FilePath $sourcegit_src -InstallArgs $sourcegit_installDir -TargetFile $sourcegit_dst
+  }
+  else {
+    Write-Host "sourcegit exists at $sourcegit_dst"
+  }
+
+  # Create a shortcut on the desktop if it doesn't exist
+  $desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'), 'SourceGit.lnk')
+  if (-Not (Test-Path $desktopPath)) {
+    $WScriptShell = New-Object -ComObject WScript.Shell
+    $shortcut = $WScriptShell.CreateShortcut($desktopPath)
+    $shortcut.TargetPath = $sourcegit_dst
+    $shortcut.WorkingDirectory = [System.IO.Path]::GetDirectoryName($sourcegit_dst)
+    $shortcut.Save()
+    Write-Host "Shortcut for SourceGit created on the desktop"
+  }
+  else {
+    Write-Host "Shortcut for SourceGit already exists on the desktop"
+  }
+}
+
 if ($vsc) {
   # Install Visual Studio Code
   $vscode_dst = "C:/Program Files/Microsoft VS Code/Code.exe"
@@ -480,7 +601,8 @@ if ($vsc) {
     $vscode_url = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
     $vscode_src = Curl-From-Url -Url $vscode_url -FileName "vscode.exe"
     Check-Install -FilePath $vscode_src -InstallArgs "/S /verysilent /mergetasks=!runcode"
-  } else {
+  }
+  else {
     Write-Host "vscode exists at $vscode_dst"
   }
 }
@@ -501,7 +623,8 @@ if ($vs) {
     }
 
     Write-Host "Succeeded to install $VS_name"
-  } else {
+  }
+  else {
     Write-Host "$VS_name has been installed before"
   }
 }
@@ -515,5 +638,5 @@ if ($vs) {
 #     Write-Warning "regsvr32 exited with error $($regsvrp.ExitCode)"
 # }
 
-Write-Host "Installation Complete" -ForegroundColor Green
 
+Write-Host "Installation Complete" -ForegroundColor Green
