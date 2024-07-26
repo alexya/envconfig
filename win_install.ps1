@@ -1,17 +1,22 @@
 param (
-  [switch]$tools     = $false,
-  [switch]$font      = $false,
-  [switch]$nvim      = $false,
-  [switch]$python    = $false,
-  [switch]$zip7      = $false,
-  [switch]$kdiff3    = $false,
-  [switch]$sourcegit = $false,
-  [switch]$vsc       = $false,
-  [switch]$vs        = $false,
-  [switch]$vcredist  = $false,
-  [switch]$help      = $false,
-  [switch]$all       = $false
+  [switch]$tools,
+  [switch]$font,
+  [switch]$nvim,
+  [switch]$python,
+  [switch]$zip7,
+  [switch]$kdiff3,
+  [switch]$sourcegit,
+  [switch]$chrome,
+  [switch]$vsc,
+  [switch]$vs,
+  [switch]$vcredist,
+  [switch]$help,
+  [switch]$all
 )
+
+# Set the execution policy to Unrestricted
+Set-ExecutionPolicy Unrestricted -Scope Process -Force
+
 
 # If --all is specified, set all other parameters to true
 if ($all) {
@@ -22,6 +27,7 @@ if ($all) {
   $zip7      = $true
   $kdiff3    = $true
   $sourcegit = $true
+  $chrome    = $true
   $vsc       = $true
   $vs        = $true
   $vcredist  = $true
@@ -38,6 +44,7 @@ if (
     $zip7      -eq $false -and
     $kdiff3    -eq $false -and
     $sourcegit -eq $false -and
+    $chrome    -eq $false -and
     $vsc       -eq $false -and
     $vs        -eq $false -and
     $vcredist  -eq $false -and
@@ -53,6 +60,7 @@ if (
       "-zip7",
       "-kdiff3",
       "-sourcegit",
+      "-chrome",
       "-vsc",
       "-vs",
       "-vcredist",
@@ -63,20 +71,29 @@ if (
   # Format the parameters with square brackets
   $formattedParameters = $parameters | ForEach-Object { "[$_]" }
 
+  # Get the current running file name
+  $currentFileName = Split-Path -Leaf $PSCommandPath
   # Build the usage string
-  $usage = "Usage: .\setup.ps1 " + ($formattedParameters -join " ")
+  $usage = "Usage: .\$currentFileName " + ($formattedParameters -join " ")
 
   Write-Host $usage -ForegroundColor Green
   Write-Output ""
 
   Write-Output "Options:"
-  Write-Output "  -tools      Install the tools/softwares through Scoop"
-  Write-Output "  -font       Install developer-friendly fonts"
+  Write-Output ""
+  Write-Output "  -tools      Install the following tools through Scoop: "
+  Write-Output "              everything, alacritty, handbrake, lazygit, mkcert, posh-git, cmder-full,"
+  Write-Output "              neovim@0.9.5, yarn, nvm, wget, ripgrep, fzf, make, cmake, gcc, sysinternals-suite"
+  Write-Output ""
+  Write-Output "  -font       Install the following developer-friendly Nerd Mono fonts: "
+  Write-Output "              Hack, Agave, Meslo, FiraCode, Inconsolata, CascadiaMono, JetBrainsMono, DejaVuSansMono"
+  Write-Output ""
   Write-Output "  -nvim       Configure for the neovim and alacritty"
   Write-Output "  -python     Install Python"
   Write-Output "  -zip7       Install 7-zip"
   Write-Output "  -kdiff3     Install KDiff3 and configure it for git"
   Write-Output "  -sourcegit  Install SourceGit, a GUI client for git"
+  Write-Output "  -chrome     Install Google Chrome browser"
   Write-Output "  -vsc        Install Visual Studio Code"
   Write-Output "  -vs         Install Visual Studio"
   Write-Output "  -vcredist   Install vcredist 2005~2023"
@@ -85,7 +102,8 @@ if (
   return
 }
 
-# Start define local variables and functions
+# Capture the start time
+$startTime = Get-Date
 
 # define global variables
 $env:logs_dir = "C:\logs"
@@ -273,7 +291,7 @@ function Check-Install {
     [string]$TargetFile
   )
 
-  # If the source file exists, try to install or extract it
+  # If the target file exists, try to install or extract it
   if ($TargetFile) {
     if (Test-Path $TargetFile) {
       Write-Host "Target file $TargetFile already exists"
@@ -458,13 +476,13 @@ if ($nvim) {
         Remove-Item -Path "$env:APPDATA\alacritty\alacritty_win.toml" -Recurse -Force -ErrorAction Ignore
       }
 
-      # open Alacritty with 'bash' shell on winOS
-      $bashPath = "shell = `"$env:USERPROFILE\scoop\shims\bash.exe`""
-      $escapedBashPath = $bashPath -replace '\\', '\\'
-      $alaConfigPath = "$env:APPDATA\alacritty\alacritty.toml"
-      $alaContent = Get-Content -Path $alaConfigPath
-      $alaContent = $alaContent -replace "shell = `"powershell`"", $escapedBashPath
-      Set-Content -Path $alaConfigPath -Value $alaContent
+      # open Alacritty with 'bash' shell on winOS, if you like it please uncomment the following lines
+      # $bashPath = "shell = `"$env:USERPROFILE\scoop\shims\bash.exe`""
+      # $escapedBashPath = $bashPath -replace '\\', '\\'
+      # $alaConfigPath = "$env:APPDATA\alacritty\alacritty.toml"
+      # $alaContent = Get-Content -Path $alaConfigPath
+      # $alaContent = $alaContent -replace "shell = `"powershell`"", $escapedBashPath
+      # Set-Content -Path $alaConfigPath -Value $alaContent
 
       # Escape backslashes in the path
       $escapedAlacrittyPath = $alacrittyPath -replace '\\', '\\'
@@ -594,6 +612,34 @@ if ($sourcegit) {
   }
 }
 
+if ($chrome) {
+  # Install Google Chrome
+  $chrome_dst = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+  if (-Not (Test-Path $chrome_dst)) {
+    $chrome_url = "https://dl.google.com/chrome/install/375.126/chrome_installer.exe"
+    $chrome_src = Download-From-Url -Url $chrome_url
+    Check-Install -FilePath $chrome_src -InstallArgs "/silent /install"
+  }
+  else {
+    Write-Host "Google Chrome exists at $chrome_dst"
+  }
+
+  # Create a shortcut for Chrome with specific arguments on the desktop if it doesn't exist
+  $chromeShortcutPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'), 'Disable security.lnk')
+  if (-Not (Test-Path $chromeShortcutPath)) {
+    $WScriptShell = New-Object -ComObject WScript.Shell
+    $chromeShortcut = $WScriptShell.CreateShortcut($chromeShortcutPath)
+    $chromeShortcut.TargetPath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+    $chromeShortcut.Arguments = "--remote-debugging-port=9222 --disable-web-security --user-data-dir=`"C:/temp/chrome`""
+    $chromeShortcut.WorkingDirectory = "C:\Program Files\Google\Chrome\Application"
+    $chromeShortcut.Save()
+    Write-Host "Shortcut for Chrome with disabled security created on the desktop"
+  }
+  else {
+    Write-Host "Shortcut for Chrome with disabled security already exists on the desktop"
+  }
+}
+
 if ($vsc) {
   # Install Visual Studio Code
   $vscode_dst = "C:/Program Files/Microsoft VS Code/Code.exe"
@@ -639,4 +685,10 @@ if ($vs) {
 # }
 
 
+$endTime = Get-Date # Capture the end time
+$executionTime = $endTime - $startTime # Calculate the total execution time
+Write-Output "" # Print the start time, end time, and total execution time
+Write-Output "Start Time: $startTime"
+Write-Output "End Time: $endTime"
+Write-Output "Total Execution Time: $executionTime"
 Write-Host "Installation Complete" -ForegroundColor Green
