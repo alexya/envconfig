@@ -59,25 +59,33 @@
 
 ## Install on Windows
 * Git clone the current repo
-* Go to the local folder and start a powershell command window with admin privilge, or a normal powershell window and open the privilge manually
+* Go to the local folder and start a powershell command window with admin privilege, or a normal powershell window and open the privilege manually
 * run the command
-    ```
-    .\win_install.ps1
+* If you meet the error like "cannot be loaded because running scripts is disabled on this system", please run the command `Set-ExecutionPolicy Unrestricted` first.
+```
+Usage: .\win_install.ps1 [-tools] [-font] [-nvim] [-python] [-zip7] [-kdiff3] [-sourcegit] [-chrome] [-vsc] [-vs] [-vcredist] [-help] [-all]
 
-    Usage: .\setup.ps1 [-tools] [-nvim] [-python] [-7zip] [-kdiff3] [-vsc] [-vs] [-all]
+Options:
 
-    Options:
-      -tools      Install the tools/softwares through Scoop
-      -font       Install developer-friendly fonts
-      -nvim       Configure for the neovim and alacritty
-      -python     Install Python
-      -7zip       Install 7zip
-      -kdiff3     Install KDiff3
-      -vsc        Install Visual Studio Code
-      -vs         Install Visual Studio
-      -all        Install all above
-      -help       Print this help message
-    ```
+  -tools      Install the following tools through Scoop:
+              everything, alacritty, handbrake, lazygit, mkcert, posh-git, cmder-full,
+              neovim@0.9.5, yarn, nvm, wget, ripgrep, fzf, make, cmake, gcc, sysinternals-suite
+
+  -font       Install the following developer-friendly Nerd Mono fonts:
+              Hack, Agave, Meslo, FiraCode, Inconsolata, CascadiaMono, JetBrainsMono, DejaVuSansMono
+
+  -nvim       Configure for the neovim and alacritty
+  -python     Install Python
+  -zip7       Install 7-zip
+  -kdiff3     Install KDiff3 and configure it for git
+  -sourcegit  Install SourceGit, a GUI client for git
+  -chrome     Install Google Chrome browser
+  -vsc        Install Visual Studio Code
+  -vs         Install Visual Studio
+  -vcredist   Install vcredist 2005~2023
+  -all        Install all above
+  -help       Print this help message
+```
 * NOTE: failed to build the LuaSnip plugin so far, refer to https://github.com/LunarVim/LunarVim/issues/4045#issuecomment-1534928815
 
 ### References
