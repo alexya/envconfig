@@ -7,9 +7,12 @@ param (
   [switch]$kdiff3,
   [switch]$sourcegit,
   [switch]$chrome,
+  [switch]$monitor,
+  [switch]$notepad,
   [switch]$vsc,
   [switch]$vs,
   [switch]$vcredist,
+  [switch]$reg,
   [switch]$help,
   [switch]$all
 )
@@ -28,9 +31,12 @@ if ($all) {
   $kdiff3    = $true
   $sourcegit = $true
   $chrome    = $true
+  $monitor   = $true
+  $notepad   = $true
   $vsc       = $true
   $vs        = $true
   $vcredist  = $true
+  $reg       = $true
 }
 
 # If -help or no parameters are specified, print the help message
@@ -45,9 +51,12 @@ if (
     $kdiff3    -eq $false -and
     $sourcegit -eq $false -and
     $chrome    -eq $false -and
+    $monitor   -eq $false -and
+    $notepad   -eq $false -and
     $vsc       -eq $false -and
     $vs        -eq $false -and
     $vcredist  -eq $false -and
+    $reg       -eq $false -and
     $all       -eq $false
   )
 ) {
@@ -61,9 +70,12 @@ if (
       "-kdiff3",
       "-sourcegit",
       "-chrome",
+      "-monitor",
+      "-notepad",
       "-vsc",
       "-vs",
       "-vcredist",
+      "-reg",
       "-help",
       "-all"
   )
@@ -81,7 +93,7 @@ if (
 
   Write-Output "Options:"
   Write-Output ""
-  Write-Output "  -tools      Install the following tools through Scoop: "
+  Write-Output "  -tools      Install the following tools through Scoop(https://scoop.sh/#/apps): "
   Write-Output "              everything, alacritty, handbrake, lazygit, mkcert, posh-git, cmder-full,"
   Write-Output "              neovim@0.9.5, yarn, nvm, wget, ripgrep, fzf, make, cmake, gcc, sysinternals-suite"
   Write-Output ""
@@ -94,9 +106,12 @@ if (
   Write-Output "  -kdiff3     Install KDiff3 and configure it for git"
   Write-Output "  -sourcegit  Install SourceGit, a GUI client for git"
   Write-Output "  -chrome     Install Google Chrome browser"
+  Write-Output "  -monitor    Install and Configure Traffic Monitor & LibreHardwareMonitor"
+  Write-Output "  -notepad    Install and Configure Notepad Next, a cross-platform Open-Source text editor"
   Write-Output "  -vsc        Install Visual Studio Code"
   Write-Output "  -vs         Install Visual Studio"
   Write-Output "  -vcredist   Install vcredist 2005~2023"
+  Write-Output "  -reg        Update the registry, e.g. restore the context menu, etc."
   Write-Output "  -all        Install all above"
   Write-Output "  -help       Print this help message"
   return
@@ -199,7 +214,46 @@ function InstallBucket {
   }
 }
 
-function Download-From-Url {
+function New-Shortcut {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ShortcutName,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$TargetPath,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("Desktop", "StartMenu")]
+        [string]$Location = "Desktop"
+    )
+
+    # Determine the path based on the location
+    switch ($Location) {
+        "Desktop" {
+            $shortcutPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath('Desktop'), "$ShortcutName.lnk")
+        }
+        "StartMenu" {
+            $startMenuPath = [System.IO.Path]::Combine($env:APPDATA, "Microsoft\Windows\Start Menu\Programs")
+            $shortcutPath = [System.IO.Path]::Combine($startMenuPath, "$ShortcutName.lnk")
+        }
+    }
+
+    # Create the shortcut if it doesn't already exist
+    if (-Not (Test-Path $shortcutPath)) {
+        $WScriptShell = New-Object -ComObject WScript.Shell
+        $shortcut = $WScriptShell.CreateShortcut($shortcutPath)
+        $shortcut.TargetPath = $TargetPath
+        $shortcut.Save()
+        Write-Host "Created shortcut '$ShortcutName' in $Location"
+    } else {
+        Write-Host "Shortcut '$ShortcutName' already exists in $Location"
+    }
+
+    return $shortcutPath
+}
+
+# download from url by using Invoke-WebRequest
+function Invoke-From-Url {
   param (
     [Parameter(Mandatory)]
     [string]$Url,
@@ -240,17 +294,23 @@ function Download-From-Url {
   }
 }
 
-function Curl-From-Url {
+# download from url by using curl
+function Get-By-Curl {
   param (
     [Parameter(Mandatory)]
     [string]$Url,
 
-    [Parameter(Mandatory)]
+    [Parameter()]
     [string]$FileName,
 
     [Parameter()]
     [string]$DownloadFolder = $env:TEMP
   )
+
+  # If FileName is not provided, parse the file name from the url
+  if (-not $FileName) {
+    $FileName = Split-Path $Url -Leaf
+  }
 
   # Set the destination path in the specified download folder
   $destinationPath = Join-Path $DownloadFolder $FileName
@@ -277,7 +337,7 @@ function Curl-From-Url {
   }
 }
 
-function Check-Install {
+function Test-Install {
   param (
     [Parameter(Mandatory)]
     [string]$FilePath,
@@ -334,6 +394,18 @@ function Check-Install {
   }
 }
 
+function Install-Git {
+  $gitClient_dst = "C:\Program Files\Git\cmd\git.exe"
+  if (-Not (Test-Path $gitClient_dst)) {
+    $gitClient_url = "https://github.com/git-for-windows/git/releases/download/v2.37.2.windows.2/Git-2.37.2.2-64-bit.exe"
+    $gitClient_src = Get-By-Curl -Url $gitClient_url
+    $installerArgs = "/VERYSILENT /NORESTART /DIR=`"C:\Program Files\Git`""
+    Test-Install -FilePath $gitClient_src -TargetFile $gitClient_dst -InstallArgs $installerArgs
+  } else {
+    Write-Host "git.exe exists at $gitClient_dst"
+  }
+}
+
 function Install-Python {
   param (
     [Parameter(Mandatory)]
@@ -362,7 +434,6 @@ function Install-Python {
 Write-Host "Checking for Scoop installation..."
 if (!(Get-Command scoop -ErrorAction SilentlyContinue)) {
   Write-Host "Scoop not found. Installing Scoop..."
-  Set-ExecutionPolicy RemoteSigned -scope CurrentUser
   # iwr -useb get.scoop.sh | iex
 
   # if you current logon user is a Administrator, please try to install the scoop by the following command
@@ -375,6 +446,7 @@ else {
 
 # Check and install a portable 'git', which is a prerequisite for the following installation
 InstallPackage -packageName 'git'
+
 # using the git manager to manage the related credentials
 # git config --global credential.helper wincred
 
@@ -384,6 +456,7 @@ foreach ($bucket in $bucketArray) {
   InstallBucket -bucketName $bucket
 }
 # End Scoop Installation
+
 
 if ($vcredist) {
   # Install vcredist from Scoop
@@ -535,7 +608,7 @@ if ($python) {
     Write-Output "Installing python..."
     $python_url = "https://www.python.org/ftp/python/3.12.4/python-3.12.4-amd64.exe"
     $python_name = Split-Path -Path $python_url -Leaf
-    Invoke-WebRequest -Uri $python_url -OutFile "$env:TEMP\$python_name"
+    Get-By-Curl -Url $python_url
     Install-Python -Name "$env:TEMP\$python_name" -python_dir $python_folder
   }
   else {
@@ -548,20 +621,22 @@ if ($zip7) {
   $7zip_dst = "C:\Program Files\7-Zip\7z.exe"
   if (-Not (Test-Path $7zip_dst)) {
     $7zip_url = "https://github.com/mcmilk/7-Zip-zstd/releases/download/v22.01-v1.5.4-R1/7z22.01-zstd-x64.exe"
-    $7zip_src = Download-From-Url -Url $7zip_url
-    Check-Install -FilePath $7zip_src -TargetFile $7zip_dst -InstallArgs  "/S /D=`"C:\Program Files\7-Zip\`""
+    $7zip_src = Get-By-Curl $7zip_url
+    Test-Install -FilePath $7zip_src -TargetFile $7zip_dst -InstallArgs "/S /D=`"C:\Program Files\7-Zip\`""
   }
   else {
     Write-Host "7-zip exists at $7zip_dst"
   }
 }
+
 if ($kdiff3) {
   # install KDiff3
   $kdiff3_dst = "C:/Program Files/KDiff3/bin/kdiff3.exe"
   if (-Not (Test-Path $kdiff3_dst)) {
-    $kdiff3_url = "https://download.kde.org/stable/kdiff3/kdiff3-1.11.0-windows-x86_64.exe"
-    $kdiff3_src = Download-From-Url -Url $kdiff3_url
-    Check-Install -FilePath $kdiff3_src -TargetFile $kdiff3_dst
+    # 1.10.7 is more stable
+    $kdiff3_url = "https://download.kde.org/stable/kdiff3/kdiff3-1.10.7-windows-x86_64.exe"
+    $kdiff3_src = Get-By-Curl -Url $kdiff3_url
+    Test-Install -FilePath $kdiff3_src -TargetFile $kdiff3_dst
   }
   else {
     Write-Host "kdiff3 exists at $kdiff3_dst"
@@ -590,8 +665,8 @@ if ($sourcegit) {
   $sourcegit_installDir = "C:/Program Files" # because the sourcezip*.zip contains a 'SourceGit' sub folder
   if (-Not (Test-Path $sourcegit_dst)) {
     $sourcegit_url = "https://github.com/sourcegit-scm/sourcegit/releases/download/v8.21/sourcegit_8.21.win-x64.zip"
-    $sourcegit_src = Download-From-Url -Url $sourcegit_url
-    Check-Install -FilePath $sourcegit_src -InstallArgs $sourcegit_installDir -TargetFile $sourcegit_dst
+    $sourcegit_src = Get-By-Curl -Url $sourcegit_url
+    Test-Install -FilePath $sourcegit_src -InstallArgs $sourcegit_installDir -TargetFile $sourcegit_dst
   }
   else {
     Write-Host "sourcegit exists at $sourcegit_dst"
@@ -617,8 +692,8 @@ if ($chrome) {
   $chrome_dst = "C:/Program Files/Google/Chrome/Application/chrome.exe"
   if (-Not (Test-Path $chrome_dst)) {
     $chrome_url = "https://dl.google.com/chrome/install/375.126/chrome_installer.exe"
-    $chrome_src = Download-From-Url -Url $chrome_url
-    Check-Install -FilePath $chrome_src -InstallArgs "/silent /install"
+    $chrome_src = Get-By-Curl -Url $chrome_url
+    Test-Install -FilePath $chrome_src -InstallArgs "/silent /install"
   }
   else {
     Write-Host "Google Chrome exists at $chrome_dst"
@@ -640,28 +715,143 @@ if ($chrome) {
   }
 }
 
+if ($notepad) {
+  # Check if Traffic Monitor is installed
+  $notepadNext_dst = "$env:USERPROFILE\scoop\apps\notepadnext\current"
+  if (-Not (Test-Path "$notepadNext_dst\NotepadNext.exe")) {
+    # Install Traffic Monitor using Scoop
+    InstallPackage -packageName 'extras/notepadnext'
+    Write-Host "NotepadNext installed using Scoop"
+
+    # Create the registry keys for Notepad Next
+    $notepadnext_path = "$notepadNext_dst\NotepadNext.exe"
+    $baseKey = [Microsoft.Win32.Registry]::ClassesRoot
+
+    $notepadNextKey = $baseKey.CreateSubKey("*\shell\NotepadNext")
+    $notepadNextKey.SetValue("", "Edit with Notepad Next")
+    $notepadNextKey.SetValue("icon", $notepadnext_path)
+
+    $commandKey = $notepadNextKey.CreateSubKey("command")
+    $commandKey.SetValue("", "`"$notepadnext_path`" `"%1`"")
+
+    Write-Host "Registry keys for Notepad Next created"
+  } else {
+    Write-Host "NotepadNext is already installed"
+  }
+}
+
+if ($monitor) {
+  # Check if Traffic Monitor is installed
+  $trafficMonitorPath = "$env:USERPROFILE\scoop\apps\trafficmonitor\current"
+  if (-Not (Test-Path "$trafficMonitorPath\TrafficMonitor.exe")) {
+    # Install Traffic Monitor using Scoop
+    InstallPackage -packageName 'extras/trafficmonitor@1.84.1'
+    Write-Host "Traffic Monitor installed using Scoop"
+
+    # Replace config.ini file content
+    $configFilePath = "$trafficMonitorPath\config.ini"
+    $configContent = @"
+[general]
+check_update_when_start = false
+hardware_monitor_item = 3
+[task_bar]
+tbar_display_item = 111
+value_right_align = true
+[config]
+hide_main_window = 1
+show_task_bar_wnd = true
+"@
+    Set-Content -Path $configFilePath -Value $configContent -Force
+    Write-Host "Replaced config.ini file content"
+  } else {
+    Write-Host "Traffic Monitor is already installed"
+  }
+
+  # Download LibreHardwareMonitor-net472.zip
+  $libreHardwareMonitorUrl = "https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases/download/v0.9.3/LibreHardwareMonitor-net472.zip"
+  $fileName = Split-Path $libreHardwareMonitorUrl -Leaf
+  $libreHardware_exe = "C:/Program Files/LibreHardwareMonitor/LibreHardwareMonitor.exe"
+  $libreHardware_dst = "C:/Program Files/LibreHardwareMonitor"
+  $zipFilePath = "$env:TEMP\$fileName"
+
+  # Download the zip file
+  if (-Not (Test-Path $zipFilePath)) {
+    Get-By-Curl -Url $libreHardwareMonitorUrl
+  } else {
+    Write-Host "$fileName already exists at $zipFilePath"
+  }
+
+  # Extract the zip file
+  if (-Not (Test-Path $libreHardware_exe)) {
+    Expand-Archive -Path $zipFilePath -DestinationPath $libreHardware_dst -Force
+    Write-Host "Extracted $fileName to $libreHardware_dst"
+  }
+
+  # Copy LibreHardwareMonitorLib.dll to Traffic Monitor folder
+  $sourceDllPath = [System.IO.Path]::Combine($libreHardware_dst, 'LibreHardwareMonitorLib.dll')
+  $destinationDllPath = [System.IO.Path]::Combine($trafficMonitorPath, 'LibreHardwareMonitorLib.dll')
+  if ((Test-Path $sourceDllPath) -and (Test-Path $destinationDllPath)) {
+      $sourceHash = Get-FileHash $sourceDllPath
+      $destinationHash = Get-FileHash $destinationDllPath
+
+      if ($sourceHash.Hash -ne $destinationHash.Hash) {
+          Copy-Item -Path $sourceDllPath -Destination $destinationDllPath -Force
+          Write-Host "Replaced LibreHardwareMonitorLib.dll in Traffic Monitor folder"
+      } else {
+          Write-Host "Source and destination files are identical. No replacement needed."
+      }
+  } else {
+      Write-Host "Source or destination file does not exist."
+  }
+
+  # Create a shortcut on the desktop
+  New-Shortcut -ShortcutName "Traffic Monitor" -TargetPath "$trafficMonitorPath\TrafficMonitor.exe" -Location "StartMenu"
+  New-Shortcut -ShortcutName "Libre Hardware Monitor" -TargetPath $libreHardware_exe -Location "StartMenu"
+}
+
 if ($vsc) {
   # Install Visual Studio Code
   $vscode_dst = "C:/Program Files/Microsoft VS Code/Code.exe"
   if (-Not (Test-Path $vscode_dst)) {
     $vscode_url = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
-    $vscode_src = Curl-From-Url -Url $vscode_url -FileName "vscode.exe"
-    Check-Install -FilePath $vscode_src -InstallArgs "/S /verysilent /mergetasks=!runcode"
+    $vscode_src = Get-By-Curl -Url $vscode_url -FileName "vscode.exe"
+    Test-Install -FilePath $vscode_src -InstallArgs "/S /verysilent /mergetasks=!runcode"
   }
   else {
     Write-Host "vscode exists at $vscode_dst"
   }
 }
 
+# Function to check if the OS is Windows 11
+function Get-Windows11Status {
+  $osVersion = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+  return $osVersion -eq "2009"
+}
+
+if ($reg) {
+  # Check if the OS is Windows 11 and add the registry key
+  if (Get-Windows11Status) {
+    Write-Host "Running on Windows 11, adding registry key to restore the context menu style to Windows 10"
+    # reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
+    Start-Process -FilePath "reg.exe" -ArgumentList "add", "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "/f", "/ve" -Wait -NoNewWindow
+  }
+  else {
+    Write-Host "Not running on Windows 11, skipping registry key addition."
+  }
+}
+
+
 if ($vs) {
   # inistall visual studio 2022
+  # https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
   $VS_name = "Visual Studio Professional 2022"
   if (-not (CheckOnUninstallablePrograms $uninstallablePrograms "$VS_name")) {
-    $VS_Professional_version = 17.8.0
-    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/eb105084-8c42-4491-a292-51b4ab48d847/10d1c9e432ad28a05f26400c987774630375efe1dcacb6a2eaf1c76ea2516cf7/vs_Professional.exe"
+    # support Watt
+    $VS_Professional_version = 17.10.6
+    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/28626b4b-f88f-4b55-a0cf-f3eaa2c643fb/c671f39bd1e2ff3a5bc9d7fd05b6b5137dd2761f2e57da62efe6bfbc5bae9865/vs_Professional.exe"
     Write-Host "Installing $VS_name $VS_Professional_version ..."
-    Invoke-WebRequest -Uri $VS_download_url -OutFile "$env:TEMP\vs_Professional.exe"
-    Start-Process -FilePath "$env:TEMP\vs_Professional.exe" -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath C:\MSVS17", "--config $PSScriptRoot\vs.config" -Wait -NoNewWindow
+    Invoke-From-Url -Url $VS_download_url
+    Start-Process -FilePath "$env:TEMP\vs_Professional.exe" -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath C:\MSVS17", "--config $PSScriptRoot\vs.vsconfig" -Wait -NoNewWindow
     if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
       exit $LASTEXITCODE
       Write-Host "Failed to install $VS_name"
