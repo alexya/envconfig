@@ -262,7 +262,10 @@ function Invoke-From-Url {
     [string]$DownloadFolder = $env:TEMP,
 
     [Parameter()]
-    [string]$FileName
+    [string]$FileName,
+
+    [Parameter()]
+    [bool]$Force = $false
   )
 
   # If FileName is not provided, parse the file name from the url
@@ -274,7 +277,7 @@ function Invoke-From-Url {
   $destinationPath = Join-Path $DownloadFolder $FileName
 
   # Check if the file already exists
-  if (-Not (Test-Path $destinationPath)) {
+  if (-Not (Test-Path $destinationPath) -or $Force) {
     # Try to download the file
     try {
       Write-Host "Downloading $FileName ..."
@@ -841,21 +844,162 @@ if ($reg) {
 }
 
 
+# Generate the vs.config file and return the path
+function New-VSConfig {
+    # Define the constant variable to hold the content of vs.vsconfig
+    $vsConfigContent = @'
+{
+  "version": "1.0",
+  "components": [
+    "Microsoft.VisualStudio.Component.CoreEditor",
+    "Microsoft.VisualStudio.Workload.CoreEditor",
+    "Microsoft.Net.Component.4.8.SDK",
+    "Microsoft.Net.Component.4.7.2.TargetingPack",
+    "Microsoft.Net.ComponentGroup.DevelopmentPrerequisites",
+    "Microsoft.VisualStudio.Component.TypeScript.TSServer",
+    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions",
+    "Microsoft.VisualStudio.Component.JavaScript.TypeScript",
+    "Microsoft.VisualStudio.Component.Roslyn.Compiler",
+    "Microsoft.Component.MSBuild",
+    "Microsoft.VisualStudio.Component.Roslyn.LanguageServices",
+    "Microsoft.VisualStudio.Component.TextTemplating",
+    "Microsoft.VisualStudio.Component.NuGet",
+    "Microsoft.VisualStudio.Component.SQL.CLR",
+    "Microsoft.Component.ClickOnce",
+    "Microsoft.VisualStudio.Component.ManagedDesktop.Core",
+    "Microsoft.NetCore.Component.Runtime.9.0",
+    "Microsoft.NetCore.Component.Runtime.8.0",
+    "Microsoft.NetCore.Component.SDK",
+    "Microsoft.VisualStudio.Component.FSharp",
+    "Microsoft.ComponentGroup.ClickOnce.Publish",
+    "Microsoft.NetCore.Component.DevelopmentTools",
+    "Microsoft.Net.Component.4.8.TargetingPack",
+    "Microsoft.Net.ComponentGroup.4.8.DeveloperTools",
+    "Microsoft.VisualStudio.Component.DiagnosticTools",
+    "Microsoft.VisualStudio.Component.EntityFramework",
+    "Microsoft.VisualStudio.Component.Debugger.JustInTime",
+    "Component.Microsoft.VisualStudio.LiveShare.2022",
+    "Microsoft.VisualStudio.Component.IntelliCode",
+    "Component.VisualStudio.GitHub.Copilot",
+    "Microsoft.Net.Component.4.7.TargetingPack",
+    "Microsoft.VisualStudio.Component.VC.CoreIde",
+    "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+    "Microsoft.VisualStudio.Component.Graphics.Tools",
+    "Microsoft.VisualStudio.Component.VC.DiagnosticTools",
+    "Microsoft.VisualStudio.Component.Windows11SDK.22621",
+    "Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites",
+    "Microsoft.VisualStudio.Component.DotNetModelBuilder",
+    "Microsoft.ComponentGroup.Blend",
+    "Microsoft.VisualStudio.Workload.ManagedDesktop",
+    "Microsoft.VisualStudio.Component.VC.ATL",
+    "Microsoft.VisualStudio.Component.VC.ATLMFC",
+    "Microsoft.VisualStudio.Component.VC.Redist.14.Latest",
+    "Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core",
+    "Microsoft.VisualStudio.Component.Windows11Sdk.WindowsPerformanceToolkit",
+    "Microsoft.VisualStudio.Component.CppBuildInsights",
+    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions.CMake",
+    "Microsoft.VisualStudio.Component.VC.CMake.Project",
+    "Microsoft.VisualStudio.Component.VC.TestAdapterForBoostTest",
+    "Microsoft.VisualStudio.Component.VC.TestAdapterForGoogleTest",
+    "Microsoft.VisualStudio.Component.VC.ASAN",
+    "Microsoft.VisualStudio.Component.Vcpkg",
+    "Microsoft.VisualStudio.Component.VC.CLI.Support",
+    "Microsoft.VisualStudio.Component.Windows10SDK.20348",
+    "Microsoft.VisualStudio.Workload.NativeDesktop",
+    "Microsoft.Net.Component.4.6.1.TargetingPack",
+    "Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64",
+    "Microsoft.VisualStudio.Component.VC.14.40.17.10.ATL",
+    "Microsoft.VisualStudio.Component.VC.14.40.17.10.CLI.Support",
+    "Microsoft.VisualStudio.Component.VC.14.40.17.10.MFC"
+  ],
+  "extensions": []
+}
+'@
+
+    # Write the content to vs.config in the $PSScriptRoot directory
+    $vsConfigPath = Join-Path -Path $PSScriptRoot -ChildPath "vs.vsconfig"
+    $vsConfigContent | Set-Content -Path $vsConfigPath
+
+    return $vsConfigPath
+}
+
+$VS_InstallPath = "C:\VS2022"
+function Install-VisualStudio {
+  param (
+    [string]$ConfigPath,
+    [string]$InstallPath = $VS_InstallPath,
+    [bool]$WinGet = $false
+  )
+  if ($WinGet) {
+    # install visual studio 2022 latest version by 'winget' manually or download from: https://visualstudio.microsoft.com/downloads/
+    # winget download --id Microsoft.VisualStudio.2022.Professional --accept-package-agreements --accept-source-agreements
+
+    # Start the winget process
+    $wingetProcess = Start-Process -FilePath "winget" -ArgumentList @(
+      'install',
+      '--id', 'Microsoft.VisualStudio.2022.Professional',
+      '--source', 'winget',
+      '--accept-package-agreements',
+      '--accept-source-agreements',
+      "--override `"--passive --config $ConfigPath --installPath $InstallPath`""
+    ) -NoNewWindow -PassThru
+
+    # Wait for the winget process to complete
+    $wingetProcess.WaitForExit()
+
+    # Wait for all Visual Studio Installer processes to complete
+    Write-Host "Waiting for Visual Studio Installer to complete..."
+
+    $elapsedTime = 0 # Track elapsed time in seconds
+    $updateInterval = 60 # Display update every 60 seconds
+    $checkInterval = 5 # Check for processes every 5 seconds
+
+    while ($true) {
+      # Get all processes with the window title "Visual Studio Installer"
+      $vsInstallerProcesses = Get-Process | Where-Object { $_.MainWindowTitle -like "*Visual Studio Installer*" }
+
+      # If no processes are found, exit the loop
+      if (-not $vsInstallerProcesses) {
+        # Calculate elapsed time in minutes and seconds
+        $elapsedMinutes = [math]::Floor($elapsedTime / 60)
+        $elapsedSeconds = $elapsedTime % 60
+        Write-Host "All Visual Studio Installer processes have completed."
+        Write-Host "Visual Studio installation completed in $elapsedMinutes minute(s) and $elapsedSeconds second(s)."
+        break
+      }
+
+      # Display the number of active processes every 1 minute
+      if ($elapsedTime % $updateInterval -eq 0) {
+        $elapsedMinutes = [math]::Floor($elapsedTime / 60)
+        Write-Host ("[{0,2} min] Found {1} active Visual Studio Installer processes. Waiting..." -f $elapsedMinutes, $vsInstallerProcesses.Count)
+      }
+
+      # Wait for 5 seconds before checking again
+      Start-Sleep -Seconds $checkInterval
+      $elapsedTime += $checkInterval
+    }
+  } else {
+    # the specified version of the visual studio 2022 is from the following link: https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
+    # install a specified visual studio 2022 version - 17.12.4
+    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/9e5046bb-ab15-4a45-9546-cbabed333482/db248009959bee821c477721b0671a1c71ad0c0201c9c00c8214cb143ea940c6/vs_Professional.exe"
+    Invoke-From-Url -Url $VS_download_url -Force $true
+    Start-Process -FilePath "$env:TEMP\vs_Professional.exe" -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath $InstallPath", "--config $ConfigPath" -Wait -NoNewWindow
+  }
+}
+
 if ($vs) {
-  # inistall visual studio 2022
-  # https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
   $VS_name = "Visual Studio Professional 2022"
   if (-not (CheckOnUninstallablePrograms $uninstallablePrograms "$VS_name")) {
-    # support Watt
-    $VS_Professional_version = 17.10.6
-    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/28626b4b-f88f-4b55-a0cf-f3eaa2c643fb/c671f39bd1e2ff3a5bc9d7fd05b6b5137dd2761f2e57da62efe6bfbc5bae9865/vs_Professional.exe"
-    Write-Host "Installing $VS_name $VS_Professional_version ..."
-    Invoke-From-Url -Url $VS_download_url
-    Start-Process -FilePath "$env:TEMP\vs_Professional.exe" -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath C:\MSVS17", "--config $PSScriptRoot\vs.vsconfig" -Wait -NoNewWindow
+    Write-Host "Installing $VS_name ..."
+
+    # generate the vs.config and prepare the path of the config file
+    $vsConfigPath = New-VSConfig
+
+    Install-VisualStudio -ConfigPath $vsConfigPath -WinGet $true
+
     if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
-      exit $LASTEXITCODE
       Write-Host "Failed to install $VS_name"
-      Write-Host "VisualStudio installation logs are found in $logs_dir"
+      exit $LASTEXITCODE
     }
 
     Write-Host "Succeeded to install $VS_name"
