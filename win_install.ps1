@@ -307,7 +307,10 @@ function Get-By-Curl {
     [string]$FileName,
 
     [Parameter()]
-    [string]$DownloadFolder = $env:TEMP
+    [string]$DownloadFolder = $env:TEMP,
+
+    [Parameter()]
+    [bool]$Force = $false
   )
 
   # If FileName is not provided, parse the file name from the url
@@ -319,7 +322,7 @@ function Get-By-Curl {
   $destinationPath = Join-Path $DownloadFolder $FileName
 
   # Check if the file already exists
-  if (-Not (Test-Path $destinationPath)) {
+  if (-Not (Test-Path $destinationPath) -or $Force) {
     # Try to download the file
     try {
       Write-Host "Downloading $FileName ..."
@@ -817,7 +820,7 @@ if ($vsc) {
   $vscode_dst = "C:/Program Files/Microsoft VS Code/Code.exe"
   if (-Not (Test-Path $vscode_dst)) {
     $vscode_url = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
-    $vscode_src = Get-By-Curl -Url $vscode_url -FileName "vscode.exe"
+    $vscode_src = Get-By-Curl -Url $vscode_url -FileName "vscode.exe" -Force $true
     Test-Install -FilePath $vscode_src -InstallArgs "/S /verysilent /mergetasks=!runcode"
   }
   else {
@@ -980,8 +983,8 @@ function Install-VisualStudio {
     }
   } else {
     # the specified version of the visual studio 2022 is from the following link: https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
-    # install a specified visual studio 2022 version - 17.12.4
-    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/9e5046bb-ab15-4a45-9546-cbabed333482/db248009959bee821c477721b0671a1c71ad0c0201c9c00c8214cb143ea940c6/vs_Professional.exe"
+    # install a specified visual studio 2022 version - 17.12.5
+    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/334f01f3-ebc7-47f9-8011-3024354a1b85/a7a766f2a13eaa3d5523ba016dfe97c73dd5f09f9ddcd01040518472a7d14297/vs_Professional.exe"
     Invoke-From-Url -Url $VS_download_url -Force $true
     Start-Process -FilePath "$env:TEMP\vs_Professional.exe" -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath $InstallPath", "--config $ConfigPath" -Wait -NoNewWindow
   }
@@ -995,7 +998,7 @@ if ($vs) {
     # generate the vs.config and prepare the path of the config file
     $vsConfigPath = New-VSConfig
 
-    Install-VisualStudio -ConfigPath $vsConfigPath -WinGet $true
+    Install-VisualStudio -ConfigPath $vsConfigPath -WinGet $false
 
     if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
       Write-Host "Failed to install $VS_name"
