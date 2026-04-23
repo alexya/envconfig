@@ -1,3 +1,4 @@
+[general]
 import = [
     #"~/AppData/Roaming/alacritty/themes/themes/coolnight.toml"
     #"~/AppData/Roaming/alacritty/themes/themes/alabaster.toml"
@@ -6,6 +7,8 @@ import = [
     # "~/AppData/Roaming/alacritty/themes/themes/github_dark_dimmed.toml"
     # "~/AppData/Roaming/alacritty/themes/themes/github_dark_high_contrast.toml"
 ]
+
+[terminal]
 # working_directory = "<Change it to yours, e.g. C:\\Users\\Administrator>"
 shell = "powershell"
 
