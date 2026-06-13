@@ -529,6 +529,11 @@ else {
 InstallPackage -packageName 'git'
 
 # using the git manager to manage the related credentials
+git config --global credential.helper manager
+
+# encrypt the credentials/PAT into the .gcm\dpapi_store\
+git config --global credential.credentialStore dpapi
+
 # git config --global credential.helper wincred
 
 # add or update some customized git commands
