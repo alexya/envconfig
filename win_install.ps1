@@ -2,7 +2,8 @@ param (
   [switch]$tools,
   [switch]$font,
   [switch]$nvim,
-  [switch]$python,
+  # [switch]$python,
+  [switch]$uv,
   [switch]$zip7,
   [switch]$kdiff3,
   [switch]$sourcegit,
@@ -26,7 +27,8 @@ if ($all) {
   $tools     = $true
   $font      = $true
   $nvim      = $true
-  $python    = $true
+  # $python    = $true
+  $uv        = $true
   $zip7      = $true
   $kdiff3    = $true
   $sourcegit = $true
@@ -46,7 +48,8 @@ if (
     $tools     -eq $false -and
     $font      -eq $false -and
     $nvim      -eq $false -and
-    $python    -eq $false -and
+    # $python    -eq $false -and
+    $uv        -eq $false -and
     $zip7      -eq $false -and
     $kdiff3    -eq $false -and
     $sourcegit -eq $false -and
@@ -65,7 +68,8 @@ if (
       "-tools",
       "-font",
       "-nvim",
-      "-python",
+      # "-python",
+      "-uv",
       "-zip7",
       "-kdiff3",
       "-sourcegit",
@@ -95,13 +99,14 @@ if (
   Write-Output ""
   Write-Output "  -tools      Install the following tools through Scoop(https://scoop.sh/#/apps): "
   Write-Output "              everything, alacritty, handbrake, lazygit, mkcert, posh-git, cmder-full,"
-  Write-Output "              neovim@0.9.5, yarn, nvm, wget, ripgrep, fzf, make, cmake, gcc, sysinternals-suite"
+  Write-Output "              neovim, yarn, nvm, wget, ripgrep, fzf, make, cmake, gcc, sysinternals-suite"
   Write-Output ""
   Write-Output "  -font       Install the following developer-friendly Nerd Mono fonts: "
   Write-Output "              Hack, Agave, Meslo, FiraCode, Inconsolata, CascadiaMono, JetBrainsMono, DejaVuSansMono"
   Write-Output ""
   Write-Output "  -nvim       Configure for the neovim and alacritty"
-  Write-Output "  -python     Install Python"
+  # Write-Output "  -python     Install Python"
+  Write-Output "  -uv         Install Python package and project manager tool: uv (https://docs.astral.sh/uv/)"
   Write-Output "  -zip7       Install 7-zip"
   Write-Output "  -kdiff3     Install KDiff3 and configure it for git"
   Write-Output "  -sourcegit  Install SourceGit, a GUI client for git"
@@ -400,6 +405,57 @@ function Test-Install {
   }
 }
 
+function New-HardLink {
+  param (
+    [Parameter(Mandatory)]
+    [string]$ExistingPath,
+
+    [Parameter(Mandatory)]
+    [string]$LinkPath
+  )
+
+  # A hard link gives the same file content another file name in the same filesystem.
+  if (-Not (Test-Path $ExistingPath)) {
+    Write-Host "Skip creating hard link because source file was not found: $ExistingPath"
+    return
+  }
+
+  if (Test-Path $LinkPath) {
+    Write-Host "Skip creating hard link because target already exists: $LinkPath"
+    return
+  }
+
+  New-Item -ItemType HardLink -Path $LinkPath -Target $ExistingPath | Out-Null
+  Write-Host "Created hard link: $LinkPath -> $ExistingPath"
+}
+
+function Get-GccPath {
+  # Prefer a resolvable gcc.exe from PATH, then fall back to the Scoop shim location.
+  $gccCommand = Get-Command gcc.exe -ErrorAction SilentlyContinue
+  if ($gccCommand) {
+    return $gccCommand.Source
+  }
+
+  $gccShimPath = Join-Path $env:USERPROFILE "scoop\shims\gcc.exe"
+  if (Test-Path $gccShimPath) {
+    return $gccShimPath
+  }
+
+  return $null
+}
+
+function New-GccHardLink {
+  # Some tools look for cc.exe instead of gcc.exe, so provide cc.exe as a hard link.
+  $gccPath = Get-GccPath
+  if (-Not $gccPath) {
+    Write-Host "Skip creating cc.exe hard link because gcc.exe was not found."
+    return
+  }
+
+  $ccPath = Join-Path (Split-Path -Path $gccPath -Parent) "cc.exe"
+  New-HardLink -ExistingPath $gccPath -LinkPath $ccPath
+}
+
 function Install-Git {
   $gitClient_dst = "C:\Program Files\Git\cmd\git.exe"
   if (-Not (Test-Path $gitClient_dst)) {
@@ -409,6 +465,25 @@ function Install-Git {
     Test-Install -FilePath $gitClient_src -TargetFile $gitClient_dst -InstallArgs $installerArgs
   } else {
     Write-Host "git.exe exists at $gitClient_dst"
+  }
+}
+
+function Configure-GitAliases {
+  $gitAliases = @{
+    ll      = 'hist -10'
+    hist    = 'log --pretty=format:''%C(auto)%h %ad | %s%d [%Cblue%an]%Creset'' --graph --date=format:''%Y-%m-%d %H:%M %p'''
+    llt     = 'tags -10'
+    tags    = 'log --pretty=format:''%C(auto)%h %ad | %s%d [%Cblue%an]%Creset'' --graph --date=format:''%Y-%m-%d %H:%M %p'' --simplify-by-decoration --decorate-refs=refs/tags'
+    tags10  = 'log -10 --pretty=format:''%C(auto)%h %ad | %s%d [%Cblue%an]%Creset'' --date=format:''%Y-%m-%d %H:%M %p'' --no-walk --tags'
+    unstage = 'restore --staged'
+    throw   = 'restore --source=HEAD --staged --worktree'
+    ss      = 'status'
+    co      = 'checkout'
+    sw      = 'switch'
+  }
+
+  foreach ($aliasName in $gitAliases.Keys) {
+    git config --global "alias.$aliasName" $gitAliases[$aliasName]
   }
 }
 
@@ -456,8 +531,11 @@ InstallPackage -packageName 'git'
 # using the git manager to manage the related credentials
 # git config --global credential.helper wincred
 
-# Check if buckets 'extras', 'nerd-fonts', and 'sysinternals' exist and install them if not
-$bucketArray = @('extras', 'nerd-fonts', 'sysinternals')
+# add or update some customized git commands
+Configure-GitAliases
+
+# Check if buckets 'extras', 'nerd-fonts', 'sysinternals', and 'versions' exist and install them if not
+$bucketArray = @('extras', 'nerd-fonts', 'sysinternals', 'versions')
 foreach ($bucket in $bucketArray) {
   InstallBucket -bucketName $bucket
 }
@@ -493,7 +571,7 @@ if ($tools) {
     'extras/posh-git', # PowerShell module that integrates Git and PowerShell by providing Git status summary information
     # command line tools
     'main/cmder-full', # a terminal tool running on Windows
-    'main/neovim@0.9.5', # Vim-fork focused on extensibility and usability (0.10.0 is unstable)
+    'main/neovim',
     'main/yarn',
     'main/nvm', # A node.js version management utility for Windows
     'main/wget',
@@ -502,6 +580,9 @@ if ($tools) {
     'main/make',
     'main/cmake',
     'main/gcc',
+    'main/helix',
+    'main/refreshenv',
+    'versions/windowsdesktop-runtime-10.0' # Required by the newer AdBuilder3.
     # 'main/ffmpeg',
     # windows famous sysinternals tool
     'sysinternals/sysinternals-suite'
@@ -516,6 +597,8 @@ if ($tools) {
   Import-Module "$env:USERPROFILE\scoop\apps\posh-git\current\posh-git.psd1"
   Add-PoshGitToProfile
 }
+
+New-GccHardLink
 
 if ($font) {
   # List of programming/coding fonts to be installed
@@ -540,17 +623,28 @@ if ($nvim) {
   # setup the Neovim environment
   $nvimPath = "$env:LOCALAPPDATA\nvim"
   if (-Not (Test-Path $nvimPath)) {
-    Remove-Item -Path "$env:TEMP\josean-dev-env" -Recurse -Force -ErrorAction Ignore
-    Remove-Item -Path "$env:TEMP\envconfig" -Recurse -Force -ErrorAction Ignore
-    git clone https://github.com/alexya/josean-dev-env.git "$env:TEMP\josean-dev-env"
-    git clone https://github.com/alexya/envconfig.git "$env:TEMP\envconfig"
-    Copy-Item -Path "$env:TEMP\josean-dev-env\.config\nvim" -Destination $env:LOCALAPPDATA -Recurse
 
-    # by default, the alacritty.exe is instlled by scoop, if you used another way to install alacritty.exe, please replace it
+    $envConfigRoot = Join-Path $env:TEMP "envconfig"
+    Remove-Item -Path $envConfigRoot -Recurse -Force -ErrorAction Ignore
+    git clone https://github.com/alexya/envconfig.git $envConfigRoot
+
+    # Use LazyVim or NvChad starter as the Neovim configuration baseline for newer Neovim versions.
+    # git clone https://github.com/LazyVim/starter $nvimPath
+    git clone https://github.com/NvChad/starter $nvimPath
+
+    # Copy the custom icons from envconfig for the Windows context-menu entry.
+    $iconSourceRoot = Join-Path $envConfigRoot "nvim"
+    if (Test-Path $iconSourceRoot) {
+      Get-ChildItem -Path $iconSourceRoot -Filter "*.ico" -Recurse | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $nvimPath -Force
+      }
+    }
+
+    # by default, the alacritty.exe is installed by scoop, if you used another way to install alacritty.exe, please replace it
     $alacrittyPath = "$env:USERPROFILE\scoop\shims\alacritty.exe"
     if (Test-Path $alacrittyPath) {
       if (-Not (Test-Path "$env:APPDATA\alacritty")) {
-        Copy-Item -Path "$env:TEMP\josean-dev-env\.config\alacritty" -Destination $env:APPDATA -Recurse
+        Copy-Item -Path (Join-Path $envConfigRoot "alacritty") -Destination $env:APPDATA -Recurse
         Copy-Item -Path "$env:APPDATA\alacritty\alacritty_win.toml" -Destination "$env:APPDATA\alacritty\alacritty.toml" -Force
         Remove-Item -Path "$env:APPDATA\alacritty\alacritty_win.toml" -Recurse -Force -ErrorAction Ignore
       }
@@ -570,8 +664,10 @@ if ($nvim) {
       $nvimIconPath = "$nvimPath\nvim1.ico"
       $escapedNvimIconPath = $nvimIconPath -replace '\\', '\\'
 
-      # Read the file content
-      $regFilePath = "${env:TEMP}\envconfig\alacritty_nvim.reg"
+      # Use a temp copy so the source template is never modified.
+      $regTemplatePath = Join-Path $envConfigRoot "alacritty_nvim.reg"
+      $regFilePath = Join-Path $env:TEMP "alacritty_nvim.reg"
+      Copy-Item -Path $regTemplatePath -Destination $regFilePath -Force
       $content = Get-Content -Path $regFilePath
 
       # Replace the placeholder with the actual path
@@ -589,9 +685,9 @@ if ($nvim) {
       Write-Output "alacritty.exe does not exist at the specified path."
     }
 
-    Write-Host "The configurations of the Neovim has been installed."
+    Write-Host "The configurations of the Neovim and Alacritty have been installed."
 
-    # NOTE: The Neovim plunins need to access npmjs website, a mirror may be needed to set in .npmrc
+    # NOTE: The Neovim plugins need to access npmjs website, a mirror may be needed to set in .npmrc
     Write-Host "Please open the Neovim in a Terminal window to complete the plugins setup."
   }
   else {
@@ -599,7 +695,7 @@ if ($nvim) {
   }
 
   # install node tool nvm
-  $nodeVersion = "18.20.4"
+  $nodeVersion = "22.14.0"
   nvm install $nodeVersion
   nvm use $nodeVersion
   $nodeVersion = node --version
@@ -619,6 +715,19 @@ if ($python) {
   }
   else {
     Write-Output "Python.exe exists at $python_path"
+  }
+}
+
+if ($uv) {
+  # install uv
+  Write-Host "Checking for uv installation..."
+  if (!(Get-Command uv -ErrorAction SilentlyContinue)) {
+    Write-Host "uv not found. Installing uv..."
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    Write-Host "uv installed successfully."
+  }
+  else {
+    Write-Host "uv is already installed."
   }
 }
 
@@ -697,7 +806,7 @@ if ($chrome) {
   # Install Google Chrome
   $chrome_dst = "C:/Program Files/Google/Chrome/Application/chrome.exe"
   if (-Not (Test-Path $chrome_dst)) {
-    $chrome_url = "https://dl.google.com/chrome/install/375.126/chrome_installer.exe"
+    $chrome_url = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"
     $chrome_src = Get-By-Curl -Url $chrome_url
     Test-Install -FilePath $chrome_src -InstallArgs "/silent /install"
   }
@@ -854,66 +963,64 @@ function New-VSConfig {
 {
   "version": "1.0",
   "components": [
-    "Microsoft.VisualStudio.Component.CoreEditor",
-    "Microsoft.VisualStudio.Workload.CoreEditor",
-    "Microsoft.Net.Component.4.8.SDK",
-    "Microsoft.Net.Component.4.7.2.TargetingPack",
-    "Microsoft.Net.ComponentGroup.DevelopmentPrerequisites",
-    "Microsoft.VisualStudio.Component.TypeScript.TSServer",
-    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions",
-    "Microsoft.VisualStudio.Component.JavaScript.TypeScript",
-    "Microsoft.VisualStudio.Component.Roslyn.Compiler",
-    "Microsoft.Component.MSBuild",
-    "Microsoft.VisualStudio.Component.Roslyn.LanguageServices",
-    "Microsoft.VisualStudio.Component.TextTemplating",
-    "Microsoft.VisualStudio.Component.NuGet",
-    "Microsoft.VisualStudio.Component.SQL.CLR",
+    "Component.Microsoft.VisualStudio.LiveShare.2022",
+    "Component.VisualStudio.GitHub.Copilot",
     "Microsoft.Component.ClickOnce",
-    "Microsoft.VisualStudio.Component.ManagedDesktop.Core",
-    "Microsoft.NetCore.Component.Runtime.9.0",
-    "Microsoft.NetCore.Component.Runtime.8.0",
-    "Microsoft.NetCore.Component.SDK",
-    "Microsoft.VisualStudio.Component.FSharp",
+    "Microsoft.Component.MSBuild",
+    "Microsoft.ComponentGroup.Blend",
     "Microsoft.ComponentGroup.ClickOnce.Publish",
-    "Microsoft.NetCore.Component.DevelopmentTools",
+    "Microsoft.Net.Component.4.6.1.TargetingPack",
+    "Microsoft.Net.Component.4.7.2.TargetingPack",
+    "Microsoft.Net.Component.4.7.TargetingPack",
+    "Microsoft.Net.Component.4.8.SDK",
     "Microsoft.Net.Component.4.8.TargetingPack",
     "Microsoft.Net.ComponentGroup.4.8.DeveloperTools",
-    "Microsoft.VisualStudio.Component.DiagnosticTools",
-    "Microsoft.VisualStudio.Component.EntityFramework",
+    "Microsoft.Net.ComponentGroup.DevelopmentPrerequisites",
+    "Microsoft.NetCore.Component.DevelopmentTools",
+    "Microsoft.NetCore.Component.Runtime.8.0",
+    "Microsoft.NetCore.Component.Runtime.9.0",
+    "Microsoft.NetCore.Component.SDK",
+    "Microsoft.VisualStudio.Component.CoreEditor",
+    "Microsoft.VisualStudio.Component.CppBuildInsights",
     "Microsoft.VisualStudio.Component.Debugger.JustInTime",
-    "Component.Microsoft.VisualStudio.LiveShare.2022",
-    "Microsoft.VisualStudio.Component.IntelliCode",
-    "Component.VisualStudio.GitHub.Copilot",
-    "Microsoft.Net.Component.4.7.TargetingPack",
-    "Microsoft.VisualStudio.Component.VC.CoreIde",
-    "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-    "Microsoft.VisualStudio.Component.Graphics.Tools",
-    "Microsoft.VisualStudio.Component.VC.DiagnosticTools",
-    "Microsoft.VisualStudio.Component.Windows11SDK.22621",
-    "Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites",
+    "Microsoft.VisualStudio.Component.DiagnosticTools",
     "Microsoft.VisualStudio.Component.DotNetModelBuilder",
-    "Microsoft.ComponentGroup.Blend",
-    "Microsoft.VisualStudio.Workload.ManagedDesktop",
+    "Microsoft.VisualStudio.Component.EntityFramework",
+    "Microsoft.VisualStudio.Component.FSharp",
+    "Microsoft.VisualStudio.Component.Graphics.Tools",
+    "Microsoft.VisualStudio.Component.IntelliCode",
+    "Microsoft.VisualStudio.Component.JavaScript.TypeScript",
+    "Microsoft.VisualStudio.Component.ManagedDesktop.Core",
+    "Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites",
+    "Microsoft.VisualStudio.Component.NuGet",
+    "Microsoft.VisualStudio.Component.Roslyn.Compiler",
+    "Microsoft.VisualStudio.Component.Roslyn.LanguageServices",
+    "Microsoft.VisualStudio.Component.SQL.CLR",
+    "Microsoft.VisualStudio.Component.TextTemplating",
+    "Microsoft.VisualStudio.Component.TypeScript.TSServer",
+    "Microsoft.VisualStudio.Component.VC.14.44.17.14.ATL",
+    "Microsoft.VisualStudio.Component.VC.14.44.17.14.CLI.Support",
+    "Microsoft.VisualStudio.Component.VC.14.44.17.14.MFC",
+    "Microsoft.VisualStudio.Component.VC.14.44.17.14.x86.x64",
+    "Microsoft.VisualStudio.Component.VC.ASAN",
     "Microsoft.VisualStudio.Component.VC.ATL",
     "Microsoft.VisualStudio.Component.VC.ATLMFC",
-    "Microsoft.VisualStudio.Component.VC.Redist.14.Latest",
-    "Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core",
-    "Microsoft.VisualStudio.Component.Windows11Sdk.WindowsPerformanceToolkit",
-    "Microsoft.VisualStudio.Component.CppBuildInsights",
-    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions.CMake",
     "Microsoft.VisualStudio.Component.VC.CMake.Project",
+    "Microsoft.VisualStudio.Component.VC.CoreIde",
+    "Microsoft.VisualStudio.Component.VC.DiagnosticTools",
+    "Microsoft.VisualStudio.Component.VC.Redist.14.Latest",
     "Microsoft.VisualStudio.Component.VC.TestAdapterForBoostTest",
     "Microsoft.VisualStudio.Component.VC.TestAdapterForGoogleTest",
-    "Microsoft.VisualStudio.Component.VC.ASAN",
+    "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
     "Microsoft.VisualStudio.Component.Vcpkg",
-    "Microsoft.VisualStudio.Component.VC.CLI.Support",
-    "Microsoft.VisualStudio.Component.Windows10SDK.20348",
-    "Microsoft.VisualStudio.Workload.NativeDesktop",
-    "Microsoft.Net.Component.4.6.1.TargetingPack",
-    "Microsoft.VisualStudio.Component.VC.14.40.17.10.x86.x64",
-    "Microsoft.VisualStudio.Component.VC.14.40.17.10.ATL",
-    "Microsoft.VisualStudio.Component.VC.14.40.17.10.CLI.Support",
-    "Microsoft.VisualStudio.Component.VC.14.40.17.10.MFC"
+    "Microsoft.VisualStudio.Component.Windows11Sdk.WindowsPerformanceToolkit",
+    "Microsoft.VisualStudio.Component.Windows11SDK.22621",
+    "Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core",
+    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions",
+    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions.CMake",
+    "Microsoft.VisualStudio.Workload.CoreEditor",
+    "Microsoft.VisualStudio.Workload.ManagedDesktop",
+    "Microsoft.VisualStudio.Workload.NativeDesktop"
   ],
   "extensions": []
 }
@@ -981,12 +1088,18 @@ function Install-VisualStudio {
       Start-Sleep -Seconds $checkInterval
       $elapsedTime += $checkInterval
     }
+
+    return $wingetProcess.ExitCode
   } else {
     # the specified version of the visual studio 2022 is from the following link: https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history
-    # install a specified visual studio 2022 version - 17.12.5
-    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/334f01f3-ebc7-47f9-8011-3024354a1b85/a7a766f2a13eaa3d5523ba016dfe97c73dd5f09f9ddcd01040518472a7d14297/vs_Professional.exe"
-    Invoke-From-Url -Url $VS_download_url -Force $true
-    Start-Process -FilePath "$env:TEMP\vs_Professional.exe" -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath $InstallPath", "--config $ConfigPath" -Wait -NoNewWindow
+    # install a specified visual studio 2022 version - 17.14.31 (April 2026)
+    $VS_download_url = "https://download.visualstudio.microsoft.com/download/pr/d9ce9498-b5ec-4730-a7b2-b0589eab2d27/08809dcedf390bf3ba2349b382ae9bac948b9f716760934d29a9d6437afae16d/vs_Professional.exe"
+    $vsBootstrapperPath = Invoke-From-Url -Url $VS_download_url -Force $true
+    # Let the VS bootstrapper manage its own child installer processes via --wait.
+    # Waiting on the returned process avoids PowerShell hanging on lingering descendants.
+    $vsBootstrapper = Start-Process -FilePath $vsBootstrapperPath -ArgumentList "--passive", "--wait", "--norestart", "--nocache", "--installPath $InstallPath", "--config $ConfigPath" -PassThru -NoNewWindow
+    $vsBootstrapper.WaitForExit()
+    return $vsBootstrapper.ExitCode
   }
 }
 
@@ -998,11 +1111,34 @@ if ($vs) {
     # generate the vs.config and prepare the path of the config file
     $vsConfigPath = New-VSConfig
 
-    Install-VisualStudio -ConfigPath $vsConfigPath -WinGet $false
+    $vsExitCode = Install-VisualStudio -ConfigPath $vsConfigPath -WinGet $false
+    $vsInstalled = CheckOnUninstallablePrograms (getUninstallablePrograms) "$VS_name"
 
-    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+    if ([string]::IsNullOrWhiteSpace([string]$vsExitCode)) {
+      if ($vsInstalled) {
+        Write-Host "Visual Studio bootstrapper did not report an exit code, but installation was detected."
+        $vsExitCode = 0
+      }
+      else {
+        Write-Host "Visual Studio bootstrapper did not report an exit code, and installation could not be verified."
+      }
+    }
+
+    switch ($vsExitCode) {
+      0 {
+        Write-Host "Visual Studio bootstrapper exited with code: 0 (installation succeeded)"
+      }
+      3010 {
+        Write-Host "Visual Studio bootstrapper exited with code: 3010 (installation succeeded, reboot required)"
+      }
+      default {
+        Write-Host "Visual Studio bootstrapper exited with code: $vsExitCode (installation failed or incomplete)"
+      }
+    }
+
+    if ($vsExitCode -ne 0 -and $vsExitCode -ne 3010) {
       Write-Host "Failed to install $VS_name"
-      exit $LASTEXITCODE
+      exit $vsExitCode
     }
 
     Write-Host "Succeeded to install $VS_name"
@@ -1021,6 +1157,11 @@ if ($vs) {
 #     Write-Warning "regsvr32 exited with error $($regsvrp.ExitCode)"
 # }
 
+
+# Reload the PATH in the current session
+Write-Host "Reloading environment variables..."
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+Write-Host "Reloaded environment variables successfully."
 
 $endTime = Get-Date # Capture the end time
 $executionTime = $endTime - $startTime # Calculate the total execution time
