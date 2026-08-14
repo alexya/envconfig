@@ -106,8 +106,23 @@
 	<string>bar_chart</string>
 	<key>LaunchAtLoginNext</key>
 	<true/>
-	<key>NSNavLastRootDirectory</key>
-	<string>~/Documents</string>
+	<key>NSOSPLastRootDirectory</key>
+	<data>
+	Ym9va6wCAAAAAAUQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	AAAAAAAAAAAAAAAAAIwBAAAEAAAAAwMAAAAAACAFAAAAAQEAAFVzZXJzAAAABgAAAAEB
+	AAB5YW5nemgAAAkAAAABAQAARG93bmxvYWRzAAAADAAAAAEGAAAQAAAAIAAAADAAAAAI
+	AAAABAMAABA+AAAAAAAACAAAAAQDAACKEwQAAAAAAAgAAAAEAwAAvRMEAAAAAAAMAAAA
+	AQYAAFgAAABoAAAAeAAAAAgAAAAABAAAQcVtKKbHPp4YAAAAAQIAAAIAAAAAAAAADwAA
+	AAAAAAAAAAAAAAAAAAAAAAABBQAACAAAAAQDAAABAAAAAAAAAAQAAAADAwAA9gEAAAgA
+	AAABCQAAZmlsZTovLy8MAAAAAQEAAE1hY2ludG9zaCBIRAgAAAAEAwAAAJCClucAAAAI
+	AAAAAAQAAEHH9mT3gAAAJAAAAAEBAABFOEE3ODIxMi03OTBBLTQxQjItODQ1QS1EQTBC
+	NDI2RTZCNjQYAAAAAQIAAIEAAAABAAAA7xMAAAEAAAAAAAAAAAAAAAEAAAABAQAALwAA
+	ANgAAAD+////AQAAAAAAAAARAAAABBAAAEQAAAAAAAAABRAAAIgAAAAAAAAAEBAAAKwA
+	AAAAAAAAQBAAAJwAAAAAAAAAAiAAAIABAAAAAAAABSAAAPAAAAAAAAAAECAAAAABAAAA
+	AAAAESAAADQBAAAAAAAAEiAAABQBAAAAAAAAEyAAACQBAAAAAAAAICAAAGABAAAAAAAA
+	MCAAAMwAAAAAAAAAAcAAANQAAAAAAAAAEcAAACAAAAAAAAAAEsAAAOQAAAAAAAAAAdAA
+	AMwAAAAAAAAAENAAAAQAAAAAAAAA
+	</data>
 	<key>NSStatusItem Preferred Position CPU_bar_chart</key>
 	<real>539</real>
 	<key>NSStatusItem Preferred Position GPU_bar_chart</key>
@@ -132,7 +147,7 @@
 	<key>NSWindow Frame NSNavPanelAutosaveName</key>
 	<string>718 669 430 163 0 0 1920 1055 </string>
 	<key>NSWindow Frame eu.exelban.Stats.Settings.WindowFrame</key>
-	<string>351 381 728 480 0 0 1920 1050 </string>
+	<string>478 392 728 480 0 0 1920 1050 </string>
 	<key>Network_position</key>
 	<integer>0</integer>
 	<key>Network_processes</key>
@@ -161,6 +176,8 @@
 	<true/>
 	<key>Network_usageReset</key>
 	<string>Once per month</string>
+	<key>Network_usageReset_next</key>
+	<integer>1788192000</integer>
 	<key>Network_widgetActivationThreshold</key>
 	<integer>0</integer>
 	<key>RAM_barChart_position</key>
@@ -235,6 +252,8 @@
 	<string>mini</string>
 	<key>dockIcon</key>
 	<false/>
+	<key>remote_tokens_migrated_to_keychain</key>
+	<true/>
 	<key>runAtLoginInitialized</key>
 	<true/>
 	<key>sensor_Average System Total</key>
@@ -265,8 +284,12 @@
 	<false/>
 	<key>setupProcess</key>
 	<true/>
+	<key>support_pending</key>
+	<false/>
+	<key>support_pending_ts</key>
+	<integer>1786700208</integer>
 	<key>support_ts</key>
-	<integer>1782546205</integer>
+	<integer>1786700208</integer>
 	<key>telemetry</key>
 	<false/>
 	<key>temperature_units</key>
@@ -274,8 +297,8 @@
 	<key>update-interval</key>
 	<string>Once per month</string>
 	<key>updater_check_ts</key>
-	<integer>1785233917</integer>
+	<integer>1786700183</integer>
 	<key>version</key>
-	<string>2.12.11</string>
+	<string>3.0.11</string>
 </dict>
 </plist>
