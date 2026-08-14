@@ -34,7 +34,7 @@ for tap in "${taps[@]}"; do
 done
 
 # Install tools with 'brew install'
-tools=("wget" "ripgrep" "python" "fzf" "neovim" "lazygit" "alacritty")
+tools=("wget" "ripgrep" "fzf" "neovim" "lazygit" "alacritty")
 for tool in "${tools[@]}"; do
   if ! brew list $tool &>/dev/null; then
     echo -e "${sep}Installing $tool..."
